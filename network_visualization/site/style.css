@@ -1,0 +1,35 @@
+body {
+    margin: 0px;
+    padding: 0px;
+
+    overflow: hidden;
+    height: 100vh;
+
+    background-color: #333;
+}
+
+#content,
+#content svg {
+    width: 100vw;
+    height: 100vh;
+}
+
+
+line {
+
+    stroke-width: 8px;
+}
+
+
+
+rect {
+    fill: #ddd;
+    cursor: pointer;
+}
+
+text {
+    text-anchor: middle;
+    font-family: monospace;
+    fill: #000;
+    cursor: pointer;
+}
