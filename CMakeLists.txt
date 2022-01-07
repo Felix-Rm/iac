@@ -14,7 +14,7 @@ include_directories("./")
 set(viz_site_dir "${CMAKE_INSTALL_PREFIX}/include/iac/network_visualization/site")
 message("VISUALIZATION_SITE_DIRECTORY=${viz_site_dir}")
 
-add_compile_definitions(IAC_DISABLE_STD)
+# add_compile_definitions(IAC_DISABLE_STD)
 # add_compile_definitions(IAC_DISABLE_LOG_WITH_LINE_NUMBERS)
 add_compile_definitions( VISUALIZATION_SITE_DIRECTORY="${viz_site_dir}")
 
