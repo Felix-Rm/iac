@@ -28,15 +28,15 @@ function objectsAreSame(x, y) {
     if (x.length != y.length) return false;
 
     for (let i = 0; i < x.length; i++) {
-        for (prop in x[i])
+        for (let prop in x[i])
             if (x[i][prop] != y[i][prop]) return false
     }
     return true;
 }
 
 function reset() {
-    width = document.querySelector('#content svg').width.baseVal.value
-    height = document.querySelector('#content svg').height.baseVal.value
+    let width = document.querySelector('#content svg').width.baseVal.value
+    let height = document.querySelector('#content svg').height.baseVal.value
 
     if (width == 0 && height == 0) {
         setTimeout(reset, 0.1)
@@ -69,7 +69,7 @@ function reset() {
 
                     } else if (chunks[0] == '#') {
 
-                        node_id = parseInt(chunks[1])
+                        let node_id = parseInt(chunks[1])
                         network_data[current_name].new_nodes[node_id] = { eps: [] }
 
                         let idx = 2;
