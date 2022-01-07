@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -41,14 +42,16 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/" #source directory
         PATTERN ".*" EXCLUDE
         PATTERN "**CMakeFiles**" EXCLUDE)
 
-project(iac_testing)
+project(iac_test_suite)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-add_executable(iac_testing tests/testing.cpp tests/test_logging.cpp)
-target_link_libraries(iac_testing PRIVATE iac)
-target_link_libraries(iac_testing PRIVATE Threads::Threads)
+add_executable(iac_test_suite tests/testing.cpp tests/test_logging.cpp)
+target_link_libraries(iac_test_suite PRIVATE iac)
+target_link_libraries(iac_test_suite PRIVATE Threads::Threads)
+
+add_test(test_suite iac_test_suite)
 
 if(COMPILE_PYTHON_BINDINGS)
 project(iac_py)
