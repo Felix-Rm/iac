@@ -50,6 +50,7 @@ add_executable(iac_testing tests/testing.cpp tests/test_logging.cpp)
 target_link_libraries(iac_testing PRIVATE iac)
 target_link_libraries(iac_testing PRIVATE Threads::Threads)
 
+if(COMPILE_PYTHON_BINDINGS)
 project(iac_py)
 
 # add_compile_definitions(COMPILE_PYTHON_BINDINGS IAC_ENABLE_DEBUG_PRINTING)
@@ -62,3 +63,4 @@ target_link_libraries(iac_py PRIVATE stdc++fs)
 
 find_package(Python COMPONENTS Interpreter Development)
 install(TARGETS iac_py DESTINATION ${Python_SITELIB})
+endif()
