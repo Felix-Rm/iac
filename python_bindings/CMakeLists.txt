@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 enable_testing()
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -Wall")
-
 project(iac_py)
 
 # add_compile_definitions(COMPILE_PYTHON_BINDINGS IAC_ENABLE_DEBUG_PRINTING)

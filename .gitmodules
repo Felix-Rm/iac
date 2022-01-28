@@ -1,6 +1,7 @@
 [submodule "dependencies/ftest"]
 	path = dependencies/ftest
 	url = https://github.com/Felix-Rm/ftest.git
+	branch = master
 [submodule "dependencies/lw_std"]
 	path = dependencies/lw_std
 	url = https://github.com/Felix-Rm/lightweight_std.git

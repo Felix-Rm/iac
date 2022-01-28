@@ -76,10 +76,10 @@ class Package {
     void copy_from(const Package& other);
     void move_from(Package& other);
 
-    static constexpr size_t m_pre_header_size = sizeof(start_byte_t) + sizeof(package_size_t);
-    static constexpr size_t m_info_header_size = sizeof(ep_id_t) * 2 + sizeof(metadata_t) + sizeof(package_type_t);
-    static constexpr size_t m_max_payload_size = numeric_limits<package_size_t>::max() - m_info_header_size;
-    static constexpr start_byte_t m_startbyte = 0b10101010;
+    static constexpr size_t s_pre_header_size = sizeof(start_byte_t) + sizeof(package_size_t);
+    static constexpr size_t s_info_header_size = sizeof(ep_id_t) * 2 + sizeof(metadata_t) + sizeof(package_type_t);
+    static constexpr size_t s_max_payload_size = numeric_limits<package_size_t>::max() - s_info_header_size;
+    static constexpr start_byte_t s_startbyte = 0b10101010;
 
     ep_id_t m_from{unset_id}, m_to{unset_id};
 
@@ -94,4 +94,5 @@ class Package {
 
     LocalTransportRoute* m_over_route{nullptr};
 };
+
 }  // namespace iac

@@ -6,8 +6,13 @@
 
 namespace iac {
 
+constexpr size_t Package::s_pre_header_size;
+constexpr size_t Package::s_info_header_size;
+constexpr size_t Package::s_max_payload_size;
+constexpr start_byte_t Package::s_startbyte;
+
 Package::Package(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, buffer_management_t buffer_type) : m_from(from), m_to(to), m_type(type), m_payload((uint8_t*)buffer), m_buffer_type(buffer_type) {
-    if (buffer_length > m_max_payload_size) {
+    if (buffer_length > s_max_payload_size) {
 #ifndef IAC_DISABLE_EXCEPTIONS
         throw InvalidPackageException("payload to big");
 #endif
@@ -50,9 +55,9 @@ Package::~Package() {
 }
 
 bool Package::send_over(LocalTransportRoute* route) const {
-    package_size_t package_size = m_info_header_size + m_payload_size;
+    package_size_t package_size = s_info_header_size + m_payload_size;
 
-    route->write(&m_startbyte, sizeof(start_byte_t));
+    route->write(&s_startbyte, sizeof(start_byte_t));
     route->write(&package_size, sizeof(package_size_t));
 
     route->write(&m_metadata, sizeof(metadata_t));
@@ -79,21 +84,21 @@ bool Package::read_from(LocalTransportRoute* route) {
     if (route->m_wait_for_available_size > 0 && route->available() < route->m_wait_for_available_size)
         return false;
 
-    if (route->available() < m_pre_header_size)
+    if (route->available() < s_pre_header_size)
         return false;
 
     route->m_wait_for_available_size = 0;
 
     start_byte_t start_byte = 0;
 
-    while (route->available() >= m_pre_header_size) {
+    while (route->available() >= s_pre_header_size) {
         if (route->read(&start_byte, sizeof(start_byte_t)) != sizeof(start_byte_t)) {
             IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading start_byte returned less bytes than 'available'");
 
             return false;
         }
 
-        if (start_byte == m_startbyte)
+        if (start_byte == s_startbyte)
             break;
 
         // NOTE: zero-bytes can be used as dummy writes by transport routes, so no warning to avoid spamming
@@ -101,7 +106,7 @@ bool Package::read_from(LocalTransportRoute* route) {
             iac_log(Logging::loglevels::warning, "corrupt message start\n");
     }
 
-    if (start_byte != m_startbyte) return false;
+    if (start_byte != s_startbyte) return false;
 
     package_size_t package_size = 0;
     if (route->read(&package_size, sizeof(package_size_t)) != sizeof(package_size_t)) {
@@ -113,7 +118,7 @@ bool Package::read_from(LocalTransportRoute* route) {
     if (route->available() < package_size) {
         route->put_back(&start_byte, sizeof(start_byte_t));
         route->put_back(&package_size, sizeof(package_size_t));
-        route->m_wait_for_available_size = package_size + m_pre_header_size;
+        route->m_wait_for_available_size = package_size + s_pre_header_size;
         return false;
     }
 
@@ -141,7 +146,7 @@ bool Package::read_from(LocalTransportRoute* route) {
         return false;
     }
 
-    m_payload_size = package_size - m_info_header_size;
+    m_payload_size = package_size - s_info_header_size;
     m_payload = new uint8_t[m_payload_size];
     m_buffer_type = buffer_management::COPY;  // we need to delete this on deconstruction
 

@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 enable_testing()
 
 set_property(GLOBAL PROPERTY CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CXX_STANDARD 17)
-set(GCC_COVERAGE_COMPILE_FLAGS "-std=17")
 
 if(NOT DEFINED DISABLE_BUILD_ALL)
     set(COMPILE_TESTS ON)

@@ -28,8 +28,6 @@ add_library(iac ${cpp_files})
 target_include_directories(iac PRIVATE ./)
 target_include_directories(iac PRIVATE ../dependencies/)
 
-target_link_libraries(iac PRIVATE stdc++fs)
-
 install(TARGETS iac LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/" #source directory
         DESTINATION "include/iac" #target directory
