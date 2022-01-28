@@ -57,6 +57,11 @@ bool Package::send_over(LocalTransportRoute* route) const {
 bool Package::read_from(LocalTransportRoute* route) {
     m_over_route = route;
 
+#ifdef ARDUINO
+    uint8_t dummy = 0;
+    route->write(&dummy, 1);
+#endif
+
     if (route->m_wait_for_available_size && route->available() < route->m_wait_for_available_size)
         return false;
 
@@ -65,25 +70,29 @@ bool Package::read_from(LocalTransportRoute* route) {
 
     route->m_wait_for_available_size = 0;
 
-    start_byte_t start_byte;
+    start_byte_t start_byte = 0;
     package_size_t package_size;
 
     while (route->available() >= m_pre_header_size) {
         if (route->read(&start_byte, sizeof(start_byte_t)) != sizeof(start_byte_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-            throw InvalidPackageException("reading start_byte returned less bytes than 'available'");
-#endif
+            IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading start_byte returned less bytes than 'available'");
+
             return false;
         }
 
         if (start_byte == m_startbyte)
             break;
+
+        // NOTE: zero-bytes can be used as dummy writes by transport routes, so no warning to avoid spamming
+        if (start_byte != 0)
+            iac_log(warning, "corrupt message start\n");
     }
 
+    if (start_byte != m_startbyte) return false;
+
     if (route->read(&package_size, sizeof(package_size_t)) != sizeof(package_size_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-        throw InvalidPackageException("reading package_len returned less bytes than 'available'");
-#endif
+        IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading package_len returned less bytes than 'available'");
+
         return false;
     }
 
@@ -95,30 +104,26 @@ bool Package::read_from(LocalTransportRoute* route) {
     }
 
     if (route->read(&m_metadata, sizeof(metadata_t)) != sizeof(metadata_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-        throw InvalidPackageException("reading meta returned less bytes than 'available'");
-#endif
+        IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading meta returned less bytes than 'available'");
+
         return false;
     }
 
     if (route->read(&m_to, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-        throw InvalidPackageException("readint to_addr returned less bytes than 'available'");
-#endif
+        IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading to_addr returned less bytes than 'available'");
+
         return false;
     }
 
     if (route->read(&m_from, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-        throw InvalidPackageException("reading from_addr returned less bytes than 'available'");
-#endif
+        IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading from_addr returned less bytes than 'available'");
+
         return false;
     }
 
     if (route->read(&m_type, sizeof(package_type_t)) != sizeof(package_type_t)) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-        throw InvalidPackageException("reading type returned less bytes than 'available'");
-#endif
+        IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading type returned less bytes than 'available'");
+
         return false;
     }
 
@@ -128,9 +133,7 @@ bool Package::read_from(LocalTransportRoute* route) {
 
     if (m_payload_size)
         if (route->read(m_payload, m_payload_size) != m_payload_size) {
-#ifndef IAC_DISABLE_EXCEPTIONS
-            throw InvalidPackageException("reading payload returned less bytes than 'available'");
-#endif
+            IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading payload returned less bytes than 'available'");
             return false;
         }
 

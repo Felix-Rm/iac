@@ -49,8 +49,6 @@ bool SocketTransportRoute::clear() {
 size_t SocketTransportRoute::available() {
     if (!m_client.connected()) return 0;
 
-    write(&m_good, 1);
-
     return m_client.available() + available_put_back_queue();
 }
 
@@ -76,10 +74,20 @@ SocketServerTransportRoute::SocketServerTransportRoute(int port) : SocketTranspo
 }
 
 bool SocketServerTransportRoute::open() {
-    m_client = m_server.available();
-    m_client.setNoDelay(true);
+    WiFiClient new_client;
 
-    return m_client;
+    do {
+        m_client = new_client;
+        new_client = m_server.available();
+        if (new_client) iac_log(network, "loop available\n");
+    } while (new_client);
+
+    if (m_client) {
+        m_client.setNoDelay(true);
+        return true;
+    }
+
+    return false;
 }
 
 bool SocketServerTransportRoute::close() {

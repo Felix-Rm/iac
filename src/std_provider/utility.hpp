@@ -5,7 +5,7 @@
 #include "../std_provider/string.hpp"
 
 #ifdef IAC_DISABLE_STD
-#include "lw_std/utility.hpp"
+#    include "lw_std/utility.hpp"
 
 namespace iac {
 
@@ -19,9 +19,9 @@ using lw_std::move;
 }  // namespace iac
 #else
 
-#include <algorithm>
-#include <exception>
-#include <utility>
+#    include <algorithm>
+#    include <exception>
+#    include <utility>
 
 namespace iac {
 
@@ -47,11 +47,11 @@ using std::move;
 namespace iac {
 
 #ifdef ARDUINO
-#define IAC_TERMINATE() \
-    while (true)        \
-        ;
+#    define IAC_TERMINATE() \
+        while (true)        \
+            ;
 #else
-#define IAC_TERMINATE() exit(EXIT_FAILURE);
+#    define IAC_TERMINATE() exit(EXIT_FAILURE);
 #endif
 
 #define IAC_STRINGIFY(x) #x
@@ -72,17 +72,17 @@ namespace iac {
 
 #ifndef IAC_DISABLE_EXCEPTIONS
 
-#define IAC_HANDLE_EXCEPTION(type, message) \
-    IAC_PRINT_EXCEPTION(type, message);     \
-    throw type(message);
+#    define IAC_HANDLE_EXCEPTION(type, message) \
+        IAC_PRINT_EXCEPTION(type, message);     \
+        throw type(message);
 
-#define IAC_HANDLE_FATAL_EXCEPTION(type, message) IAC_HANDLE_EXCEPTION(type, message)
+#    define IAC_HANDLE_FATAL_EXCEPTION(type, message) IAC_HANDLE_EXCEPTION(type, message)
 
-#define IAC_CREATE_MESSAGE_EXCEPTION(name)         \
-    class name : public Exception {                \
-       public:                                     \
-        name(string reason) : Exception(reason){}; \
-    }
+#    define IAC_CREATE_MESSAGE_EXCEPTION(name)         \
+        class name : public Exception {                \
+           public:                                     \
+            name(string reason) : Exception(reason){}; \
+        }
 
 class Exception : public std::exception {
    public:
@@ -98,13 +98,13 @@ class Exception : public std::exception {
 
 #else
 
-#define IAC_HANDLE_EXCEPTION(type, message)
+#    define IAC_HANDLE_EXCEPTION(type, message)
 
-#define IAC_HANDLE_FATAL_EXCEPTION(type, message) \
-    IAC_HANDLE_EXCEPTION(type, message);          \
-    while (true) {                                \
-    }
+#    define IAC_HANDLE_FATAL_EXCEPTION(type, message) \
+        IAC_HANDLE_EXCEPTION(type, message);          \
+        while (true) {                                \
+        }
 
-#define IAC_CREATE_MESSAGE_EXCEPTION(name)
+#    define IAC_CREATE_MESSAGE_EXCEPTION(name)
 #endif
 }  // namespace iac

@@ -10,7 +10,7 @@
 #include "std_provider/string.hpp"
 
 #ifndef IAC_DISABLE_EXCEPTIONS
-#include <exception>
+#    include <exception>
 #endif
 
 #include "transport_routes/transport_route.hpp"

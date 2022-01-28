@@ -9,7 +9,7 @@
 #include "std_provider/utility.hpp"
 
 #ifndef IAC_DISABLE_STD
-#include <functional>
+#    include <functional>
 #endif
 
 namespace iac {

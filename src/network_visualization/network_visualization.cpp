@@ -2,9 +2,11 @@
 #include <unordered_map>
 
 #include "network_types.hpp"
+#include "std_provider/string.hpp"
+
 #ifndef ARDUINO
 
-#include "network_visualization.hpp"
+#    include "network_visualization/network_visualization.hpp"
 
 namespace iac {
 
@@ -43,23 +45,23 @@ void Visualization::update() {
     }
 
     if (m_server.m_state == LocalTransportRoute::route_state::OPEN) {
-        std::filesystem::path result;
+        path result;
 
-        while (!(result = parseRequest()).empty())
-            answerRequest(result);
+        while (!(result = parse_request()).empty())
+            answer_request(result);
     }
 }
 
-std::filesystem::path Visualization::parseRequest() {
+Visualization::path Visualization::parse_request() {
     size_t available = m_server.available();
-    std::filesystem::path path;
+    path requested_path;
 
     if (available) {
         m_server.read(m_buffer_pointer, available);
         m_buffer_pointer += available;
         // printf("request in\n");
 
-        // ceck if entire request has been read (http requests end with two newlines)
+        // check if entire request has been read (http requests end with two newlines)
         if (m_buffer_pointer - m_message_buffer > 5 && strncmp("\r\n\r\n", m_buffer_pointer - 5, 4)) {
             // reset buffer_pointer
             m_buffer_pointer = m_message_buffer;
@@ -67,12 +69,12 @@ std::filesystem::path Visualization::parseRequest() {
             // check for type of request
             if (m_message_buffer[0] == 'G') {
                 for (size_t i = 5; i < 2048 && m_message_buffer[i] != ' ' && m_message_buffer[i] != '?'; i++)
-                    path += m_message_buffer[i];
+                    requested_path += m_message_buffer[i];
 
-                if (path.empty())
+                if (requested_path.empty())
                     return "index.html";
                 else
-                    return path;
+                    return requested_path;
             } else {
                 // printf("UNKNOWN\n");
             }
@@ -83,8 +85,8 @@ std::filesystem::path Visualization::parseRequest() {
 
     return {};
 }
-void Visualization::answerRequest(const std::filesystem::path& path) {
-    auto full_path = m_root_path / path;
+void Visualization::answer_request(const Visualization::path& path) {
+    auto full_path = m_root_path + path;
 
     // printf("path: %s %s\n", full_path.c_str(), full_path.extension().c_str());
 
@@ -116,18 +118,21 @@ void Visualization::answerRequest(const std::filesystem::path& path) {
             }
         }
 
-        sendHeader("200 OK", data.length(), m_mime_types[".txt"].c_str());
+        send_header("200 OK", data.length(), m_mime_types[".txt"].c_str());
         m_server.write(data.c_str(), data.length());
 
-    } else if (std::filesystem::is_regular_file(full_path)) {
-        std::ifstream input(full_path, std::ios::binary);
-        std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
-
-        sendHeader("200 OK", buffer.size(), m_mime_types[full_path.extension()].c_str());
-
-        m_server.write(buffer.data(), buffer.size());
     } else {
-        sendHeader("404 NOT FOUND", 0, "");
+        std::ifstream input(full_path, std::ios::binary);
+
+        if (!input) {
+            send_header("404 NOT FOUND", 0, "");
+
+        } else {
+            std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+
+            send_header("200 OK", buffer.size(), get_mime_type(full_path).c_str());
+            m_server.write(buffer.data(), buffer.size());
+        }
     }
 
     m_server.flush();
@@ -135,7 +140,18 @@ void Visualization::answerRequest(const std::filesystem::path& path) {
     // printf("closed %d\n", m_server.state == TransportRoute::route_state::CLOSED);
 }
 
-void Visualization::sendHeader(const char* status, size_t size, const char* mime_type) {
+string Visualization::get_mime_type(Visualization::path file_path) {
+    for (int i = file_path.length(); i >= 0; --i) {
+        if (file_path[i] == '.')
+            return m_mime_types[file_path.substr(i)];
+        if (file_path[i] == '/' || file_path[i] == '\\')
+            break;
+    }
+
+    return "text/plain";
+}
+
+void Visualization::send_header(const char* status, size_t size, const char* mime_type) {
     char buffer[1024];
     size_t written = snprintf(buffer, 1024, "HTTP/1.1 %s\r\nContent-Length: %lu\r\nContent-Type: %s\r\n\r\n", status, size, mime_type);
 

@@ -257,13 +257,12 @@ pair<tr_id_t, uint8_t> LocalNode::best_local_route(unordered_map<tr_id_t, uint8_
 bool LocalNode::handle_package(Package& package, LocalTransportRoute* route) {
     // if no route is forced, it has to be resolved
     if (!route) {
-        // if the package destination is 'IAC' read it now
-
         if (package.type() == reserved_package_types::CONNECT) {
             return handle_connect(package);
         } else if (package.type() == reserved_package_types::DISCONNECT) {
             return handle_disconnect(package);
         } else if (package.type() == reserved_package_types::HEARTBEAT) {
+            package.route()->m_state = LocalTransportRoute::route_state::WORKING;
             return handle_heartbeat(package);
         } else if (package.to() == reserved_endpoint_addresses::IAC) {
             IAC_HANDLE_EXCEPTION(InvalidPackageException, "package had reserved address, but not reserved type");
@@ -396,7 +395,7 @@ bool LocalNode::handle_connect(Package& package) {
 
     IAC_ASSERT(validate_network());
 
-    return true;
+    return route_keep_alive(package.route());
 }
 
 bool LocalNode::handle_disconnect(const Package& package) {
@@ -485,11 +484,10 @@ bool LocalNode::update() {
                     break;
 
             case LocalTransportRoute::route_state::OPEN:
-                if (!route_test(route)) return false;
                 route->m_last_package_in = timestamp();
-                break;
 
             case LocalTransportRoute::route_state::TESTING:
+                if (!route_test(route)) return false;
             case LocalTransportRoute::route_state::WORKING:
 
                 if (timestamp() - route->m_last_package_in > route->m_assume_dead_after_ms) {
@@ -524,7 +522,6 @@ bool LocalNode::route_try_read(LocalTransportRoute* route) {
         if (package.read_from(route)) {
             route->m_last_package_in = timestamp();
             if (!handle_package(package)) return false;
-            route->m_state = LocalTransportRoute::route_state::WORKING;
         } else {
             break;
         }

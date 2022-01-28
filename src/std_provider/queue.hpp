@@ -1,15 +1,15 @@
 #pragma once
 
 #ifdef IAC_DISABLE_STD
-#include "lw_std/vector.hpp"
+#    include "lw_std/queue.hpp"
 namespace iac {
 template <typename T>
-using vector = lw_std::vector<T>;
+using queue = lw_std::queue<T>;
 }
 #else
-#include <vector>
+#    include <queue>
 namespace iac {
 template <typename T>
-using vector = std::vector<T>;
+using queue = std::queue<T>;
 }
 #endif

@@ -1,25 +1,16 @@
 #pragma once
 
-#ifndef ARDUINO
+#ifdef ARDUINO
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#    include <ESP8266WiFi.h>
 
-#include "transport_route.hpp"
+#    include "transport_route.hpp"
 
 namespace iac {
 
 class SocketTransportRoute : public LocalTransportRoute {
    public:
-    SocketTransportRoute(const char* ip, int port);
+    SocketTransportRoute(int port);
     virtual ~SocketTransportRoute() = default;
 
     size_t read(void* buffer, size_t size) override;
@@ -35,11 +26,9 @@ class SocketTransportRoute : public LocalTransportRoute {
     };
 
    protected:
-    const char* m_ip;
-    in_addr_t m_addr = INADDR_ANY;
     int m_port;
 
-    int m_rw_fd = -1;
+    WiFiClient m_client;
 
     bool m_good = true;
 };
@@ -55,12 +44,12 @@ class SocketClientTransportRoute : public SocketTransportRoute {
     void printBuffer(int cols = 4);
 
    private:
-    sockaddr_in m_address;
+    const char* m_ip;
 };
 
 class SocketServerTransportRoute : public SocketTransportRoute {
    public:
-    SocketServerTransportRoute(const char* ip, int port);
+    SocketServerTransportRoute(int port);
     ~SocketServerTransportRoute() = default;
 
     bool open() override;
@@ -69,10 +58,7 @@ class SocketServerTransportRoute : public SocketTransportRoute {
     void printBuffer(int cols = 4);
 
    private:
-    int m_server_fd;
-    sockaddr_in m_server_address, m_client_address;
+    WiFiServer m_server;
 };
-
 }  // namespace iac
-
 #endif

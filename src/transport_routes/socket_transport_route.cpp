@@ -1,4 +1,3 @@
-
 #ifndef ARDUINO
 
 #include "socket_transport_route.hpp"
@@ -87,42 +86,52 @@ bool SocketClientTransportRoute::open() {
 
     struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 10000;
+    tv.tv_usec = 100000;
 
     fd_set fds;
 
+    if (setsockopt(m_rw_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) != 0) {
+        iac_log(network, "Failed setting receive timout\n");
+
+        return false;
+    }
+
+    if (setsockopt(m_rw_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) != 0) {
+        iac_log(network, "Failed setting send timout\n");
+
+        return false;
+    }
+
     if (connect(m_rw_fd, (sockaddr*)&m_address, sizeof(m_address)) < 0) {
         if (errno == EINPROGRESS) {
-            while (true) {
-                FD_ZERO(&fds);
-                FD_SET(m_rw_fd, &fds);
-                result = select(m_rw_fd + 1, NULL, &fds, NULL, &tv);
+            FD_ZERO(&fds);
+            FD_SET(m_rw_fd, &fds);
+            result = select(m_rw_fd + 1, NULL, &fds, NULL, &tv);
 
-                if (result < 0 && errno == EINTR) {
-                    iac_log(network, "Error connecting %d - %s\n", errno, strerror(errno));
+            if (result < 0 && errno == EINTR) {
+                iac_log(network, "Error connecting %d - %s\n", errno, strerror(errno));
 
-                    return false;
+                return false;
 
-                } else if (result > 0) {
-                    if (getsockopt(m_rw_fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &len) < 0) {
-                        iac_log(network, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
-
-                        return false;
-                    }
-
-                    if (valopt) {
-                        iac_log(network, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-
-                        return false;
-                    }
-                    break;
-
-                } else {
-                    iac_log(network, "Timeout in select() - Cancelling!\n");
+            } else if (result > 0) {
+                if (getsockopt(m_rw_fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &len) < 0) {
+                    iac_log(network, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
 
                     return false;
                 }
+
+                if (valopt) {
+                    iac_log(network, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
+
+                    return false;
+                }
+
+            } else {
+                iac_log(network, "Timeout in select() - Cancelling!\n");
+
+                return false;
             }
+
         } else {
             iac_log(network, "Error connecting %d - %s\n", errno, strerror(errno));
 
@@ -136,6 +145,21 @@ bool SocketClientTransportRoute::open() {
     opts |= O_NONBLOCK;
     if (fcntl(m_rw_fd, F_SETFL, opts) < 0)
         return false;
+
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+
+    if (setsockopt(m_rw_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) != 0) {
+        iac_log(network, "Failed setting receive timout\n");
+
+        return false;
+    }
+
+    if (setsockopt(m_rw_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) != 0) {
+        iac_log(network, "Failed setting send timout\n");
+
+        return false;
+    }
 
     return true;
 }
