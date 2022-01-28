@@ -2,8 +2,8 @@
 
 #include <thread>
 
-#include "../iac.hpp"
-#include "test_logging.hpp"
+#include "ftest/test_logging.hpp"
+#include "iac.hpp"
 
 class TestSendReceive {
    public:

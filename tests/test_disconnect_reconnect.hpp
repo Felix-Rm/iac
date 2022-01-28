@@ -1,16 +1,19 @@
 #pragma once
 
+#include <chrono>
 #include <thread>
 
-#include "../iac.hpp"
+#include "ftest/test_logging.hpp"
+#include "iac.hpp"
 #include "std_provider/utility.hpp"
-#include "test_logging.hpp"
 
 class TestDisconnectReconnect {
    public:
     const std::string test_name = "disconnect/reconnect";
 
     TestLogging::test_result_t run() {
+        using namespace std::chrono_literals;
+
         int rec_pkg_count = 0;
 
         iac::LocalNode node1, node2;
@@ -25,9 +28,10 @@ class TestDisconnectReconnect {
         iac::LoopbackTransportRoutePackage tr;
         tr.connect(node1, node2);
         try {
-            for (int i = 0; i < 1; ++i) {
+            for (int i = 0; i < 5; ++i) {
                 while (!node1.is_endpoint_connected(2) || !node2.is_endpoint_connected(1)) {
                     node1.update();
+                    std::this_thread::sleep_for(100ms);
                     node2.update();
                 }
 
@@ -37,6 +41,8 @@ class TestDisconnectReconnect {
                 while (node1.is_endpoint_connected(2)) {
                     node1.update();
                 }
+
+                std::this_thread::sleep_for(200ms);
             }
         } catch (iac::Exception& e) {
             return {e.what()};

@@ -3,10 +3,10 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "ftest/test_logging.hpp"
 #include "iac.hpp"
 #include "logging.hpp"
 #include "test_disconnect_reconnect.hpp"
-#include "test_logging.hpp"
 #include "test_network_building.hpp"
 #include "test_network_visualization.hpp"
 #include "test_send_receive.hpp"

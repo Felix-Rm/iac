@@ -5,8 +5,8 @@
 #include <thread>
 
 #include "forward.hpp"
+#include "ftest/test_logging.hpp"
 #include "iac.hpp"
-#include "test_logging.hpp"
 
 class TestNetworkVisualization {
    public:
