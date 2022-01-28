@@ -3,7 +3,7 @@ enable_testing()
 
 set_property(GLOBAL PROPERTY CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CXX_STANDARD 17)
-SET(GCC_COVERAGE_COMPILE_FLAGS "-std=17")
+set(GCC_COVERAGE_COMPILE_FLAGS "-std=17")
 
 if(NOT DEFINED DISABLE_BUILD_ALL)
     set(COMPILE_TESTS ON)
@@ -16,6 +16,7 @@ add_subdirectory(src)
 # Define COMPILE_TESTS to build a test suite for iac
 if(COMPILE_TESTS)
 add_subdirectory(dependencies/ftest)
+add_subdirectory(dependencies/lw_std)
 add_subdirectory(tests)
 endif()
 

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+enable_testing()
 
 project(iac)
 
@@ -21,6 +22,7 @@ set(cpp_files
     "transport_routes/socket_transport_route.cpp"
     "transport_routes/loopback_transport_route.cpp")
 
+
 add_library(iac ${cpp_files})
 
 target_include_directories(iac PRIVATE ./)
@@ -33,7 +35,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/" #source directory
         DESTINATION "include/iac" #target directory
         FILES_MATCHING #install only matched files
         PATTERN "*.hpp" #select header files
-        PATTERN "**/site/*" PATTERN "build" EXCLUDE
+        PATTERN "site/*" PATTERN "build" EXCLUDE
         PATTERN ".*" EXCLUDE
         PATTERN "**CMakeFiles**" EXCLUDE)
 

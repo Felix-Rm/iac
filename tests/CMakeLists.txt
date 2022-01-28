@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+enable_testing()
 
 project(iac_test_suite)
 
@@ -13,4 +14,4 @@ target_include_directories(iac_test_suite PRIVATE ../src/)
 target_link_libraries(iac_test_suite PRIVATE iac ftest)
 target_link_libraries(iac_test_suite PRIVATE Threads::Threads)
 
-add_test(test_suite iac_test_suite)
+add_test(iac_test_suite iac_test_suite)
