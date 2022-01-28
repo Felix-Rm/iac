@@ -1,6 +1,7 @@
 #include "buffer_rw.hpp"
 
 #include <cstdint>
+#include <cstring>
 
 namespace iac {
 
@@ -54,7 +55,7 @@ bool BufferWriter::grow_buffer_to(size_t min_buffer_size) {
         m_allocated_buffer_size = new_buffer_size;
         m_cursor = m_buffer + cursor_offset;
 
-        iac_log(verbose, "addresses from %p to %p are now owned by %p\n", m_buffer, m_buffer + m_allocated_buffer_size, this);
+        iac_log(Logging::loglevels::verbose, "addresses from %p to %p are now owned by %p\n", m_buffer, m_buffer + m_allocated_buffer_size, this);
     }
     return true;
 }
@@ -64,7 +65,8 @@ void BufferWriter::ensure_space(size_t min_free_space) {
 
     if (free_space >= min_free_space) {
         return;
-    } else if (!grow_buffer_to(m_allocated_buffer_size + (min_free_space - free_space))) {
+    }
+    if (!grow_buffer_to(m_allocated_buffer_size + (min_free_space - free_space))) {
         IAC_HANDLE_FATAL_EXCEPTION(BufferWriterGrowException, "failed to grow buffer to target size [bad_alloc]");
     }
 }
@@ -72,7 +74,7 @@ void BufferWriter::ensure_space(size_t min_free_space) {
 BufferWriter& BufferWriter::str(const char* str) {
     size_t string_length = strlen(str) + 1;  // copy null terminator as well
     ensure_space(string_length);
-    strcpy((char*)m_cursor, str);
+    memmove(m_cursor, str, string_length);
     m_cursor += string_length;
 
     return *this;

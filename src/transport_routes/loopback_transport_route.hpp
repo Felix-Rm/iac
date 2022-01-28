@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "../node.hpp"
+#include "node.hpp"
 #include "transport_route.hpp"
 
 namespace iac {
@@ -12,7 +12,6 @@ class LoopbackTransportRoute : public LocalTransportRoute {
     typedef queue<uint8_t> queue_t;
 
     LoopbackTransportRoute(queue_t* write_queue, queue_t* read_queue);
-    ~LoopbackTransportRoute() = default;
 
     size_t read(void* buffer, size_t size) override;
     size_t write(const void* buffer, size_t size) override;
@@ -34,9 +33,6 @@ class LoopbackTransportRoute : public LocalTransportRoute {
 
 class LoopbackTransportRoutePackage {
    public:
-    LoopbackTransportRoutePackage() = default;
-    ~LoopbackTransportRoutePackage() = default;
-
     LoopbackTransportRoute& end1() { return loopback_1; };
     LoopbackTransportRoute& end2() { return loopback_2; };
 

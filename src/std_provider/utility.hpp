@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 
-#include "../std_provider/string.hpp"
+#include "std_provider/string.hpp"
 
 #ifdef IAC_DISABLE_STD
 #    include "lw_std/utility.hpp"
@@ -57,17 +57,17 @@ namespace iac {
 #define IAC_STRINGIFY(x) #x
 #define IAC_TOSTRING(x) IAC_STRINGIFY(x)
 #define IAC_AT __FILE__ ":" IAC_TOSTRING(__LINE__)
-#define IAC_PRINT_EXCEPTION(type, message) iac_log(error, "run into non-fatal " #type \
-                                                          " @ " IAC_AT " message: " message "\n");
+#define IAC_PRINT_EXCEPTION(type, message) iac_log(Logging::loglevels::error, "run into non-fatal " #type \
+                                                                              " @ " IAC_AT " message: " message "\n");
 
-#define IAC_ASSERT(x)                                                             \
-    if (!(x)) {                                                                   \
-        iac_log(error, "IAC_ASSERT FAILED @ " IAC_AT " - " IAC_TOSTRING(x) "\n"); \
-        IAC_TERMINATE();                                                          \
+#define IAC_ASSERT(x)                                                                                 \
+    if (!(x)) {                                                                                       \
+        iac_log(Logging::loglevels::error, "IAC_ASSERT FAILED @ " IAC_AT " - " IAC_TOSTRING(x) "\n"); \
+        IAC_TERMINATE();                                                                              \
     }
 
-#define IAC_ASSERT_NOT_REACHED()                                              \
-    iac_log(error, "IAC_ASSERT_NOT_REACHED @ " IAC_AT " - invalid state \n"); \
+#define IAC_ASSERT_NOT_REACHED()                                                                  \
+    iac_log(Logging::loglevels::error, "IAC_ASSERT_NOT_REACHED @ " IAC_AT " - invalid state \n"); \
     IAC_TERMINATE();
 
 #ifndef IAC_DISABLE_EXCEPTIONS
@@ -78,15 +78,15 @@ namespace iac {
 
 #    define IAC_HANDLE_FATAL_EXCEPTION(type, message) IAC_HANDLE_EXCEPTION(type, message)
 
-#    define IAC_CREATE_MESSAGE_EXCEPTION(name)         \
-        class name : public Exception {                \
-           public:                                     \
-            name(string reason) : Exception(reason){}; \
+#    define IAC_CREATE_MESSAGE_EXCEPTION(name)                          \
+        class name : public Exception {                                 \
+           public:                                                      \
+            explicit name(string&& reason) : Exception(move(reason)){}; \
         }
 
 class Exception : public std::exception {
    public:
-    Exception(string reason) : m_reason(reason){};
+    explicit Exception(string&& reason) : m_reason(move(reason)){};
 
     const char* what() const noexcept override {
         return m_reason.c_str();

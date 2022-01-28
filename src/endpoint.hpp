@@ -25,14 +25,13 @@ class Endpoint {
     friend ManagedNetworkEntry<Endpoint>;
 
    public:
-    const ep_id_t id() const { return m_id; };
+    ep_id_t id() const { return m_id; };
     const string& name() const { return m_name; };
-    const node_id_t node() const { return m_node; };
+    node_id_t node() const { return m_node; };
     bool local() const { return m_local; };
 
    private:
-    Endpoint(ep_id_t id, string name = "", node_id_t node = unset_id) : m_id(id), m_name(name), m_node(node){};
-    ~Endpoint() = default;
+    explicit Endpoint(ep_id_t id, string&& name = "", node_id_t node = unset_id) : m_id(id), m_name(name), m_node(node){};
 
     ep_id_t m_id{unset_id};
     bool m_local{false};
@@ -85,8 +84,13 @@ class LocalEndpoint : public Endpoint {
         } ptr;
     } package_handler_t;
 
-    LocalEndpoint(ep_id_t id, string name) : Endpoint(id, name) { m_local = true; };
+    LocalEndpoint(ep_id_t id, string&& name) : Endpoint(id, move(name)) { m_local = true; };
     ~LocalEndpoint();
+
+    LocalEndpoint(LocalEndpoint&) = delete;
+    LocalEndpoint(LocalEndpoint&&) = delete;
+    LocalEndpoint& operator=(LocalEndpoint&) = delete;
+    LocalEndpoint& operator=(LocalEndpoint&&) = delete;
 
     void add_package_handler(package_type_t for_type, package_handler_by_reader_t handler);
     void add_package_handler(package_type_t for_type, package_handler_by_buffer_t handler);

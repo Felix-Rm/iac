@@ -1,7 +1,7 @@
 
 #ifdef ARDUINO
 
-#include "socket_transport_route_arduino.hpp"
+#    include "socket_transport_route_arduino.hpp"
 
 namespace iac {
 
@@ -79,7 +79,7 @@ bool SocketServerTransportRoute::open() {
     do {
         m_client = new_client;
         new_client = m_server.available();
-        if (new_client) iac_log(network, "loop available\n");
+        if (new_client) iac_log(Logging::loglevels::network, "loop available\n");
     } while (new_client);
 
     if (m_client) {

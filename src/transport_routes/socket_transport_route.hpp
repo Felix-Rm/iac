@@ -4,15 +4,16 @@
 
 #    include <arpa/inet.h>
 #    include <netinet/in.h>
-#    include <signal.h>
-#    include <stdio.h>
-#    include <stdlib.h>
-#    include <string.h>
 #    include <sys/fcntl.h>
 #    include <sys/ioctl.h>
 #    include <sys/socket.h>
 #    include <unistd.h>
 
+#    include <csignal>
+#    include <cstdio>
+#    include <cstdlib>
+
+#    include "std_provider/string.hpp"
 #    include "transport_route.hpp"
 
 namespace iac {
@@ -20,7 +21,6 @@ namespace iac {
 class SocketTransportRoute : public LocalTransportRoute {
    public:
     SocketTransportRoute(const char* ip, int port);
-    virtual ~SocketTransportRoute() = default;
 
     size_t read(void* buffer, size_t size) override;
     size_t write(const void* buffer, size_t size) override;
@@ -30,14 +30,15 @@ class SocketTransportRoute : public LocalTransportRoute {
 
     size_t available() override;
 
-    operator bool() const {
+    explicit operator bool() const {
         return m_good;
     };
 
    protected:
-    const char* m_ip;
+    const char* m_ip = nullptr;
+    int m_port = 0;
+
     in_addr_t m_addr = INADDR_ANY;
-    int m_port;
 
     int m_rw_fd = -1;
 
@@ -47,7 +48,6 @@ class SocketTransportRoute : public LocalTransportRoute {
 class SocketClientTransportRoute : public SocketTransportRoute {
    public:
     SocketClientTransportRoute(const char* ip, int port);
-    ~SocketClientTransportRoute() = default;
 
     bool open() override;
     bool close() override;
@@ -55,13 +55,14 @@ class SocketClientTransportRoute : public SocketTransportRoute {
     void printBuffer(int cols = 4);
 
    private:
-    sockaddr_in m_address;
+    sockaddr_in m_address{};
+
+    static constexpr unsigned s_connect_timeout = 100000;
 };
 
 class SocketServerTransportRoute : public SocketTransportRoute {
    public:
     SocketServerTransportRoute(const char* ip, int port);
-    ~SocketServerTransportRoute() = default;
 
     bool open() override;
     bool close() override;
@@ -69,8 +70,8 @@ class SocketServerTransportRoute : public SocketTransportRoute {
     void printBuffer(int cols = 4);
 
    private:
-    int m_server_fd;
-    sockaddr_in m_server_address, m_client_address;
+    int m_server_fd{-1};
+    sockaddr_in m_server_address{}, m_client_address{};
 };
 
 }  // namespace iac

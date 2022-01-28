@@ -81,7 +81,7 @@ class BufferWriter {
     ~BufferWriter();
 
     BufferWriter& str(const char* str);
-    BufferWriter& str(string string) { return str(string.c_str()); };
+    BufferWriter& str(const string& string) { return str(string.c_str()); };
 
     template <typename T>
     BufferWriter& num(T num) {
@@ -91,13 +91,13 @@ class BufferWriter {
         return *this;
     }
 
-    BufferWriter& boolean(bool b) { return num<uint8_t>(b); };
+    BufferWriter& boolean(bool b) { return num((uint8_t)b); };
 
     const uint8_t* buffer() const {
         return m_buffer;
     }
 
-    const size_t size() const {
+    size_t size() const {
         return m_cursor - m_buffer;
     }
 

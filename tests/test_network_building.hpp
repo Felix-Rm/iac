@@ -56,12 +56,12 @@ class TestNetworkBuilding {
     };
 
    private:
-    bool test_networks_equal(std::vector<iac::LocalNode*> nodes) {
-        for (auto node : nodes) {
-            for (auto compare_node : nodes) {
+    bool test_networks_equal(const std::vector<iac::LocalNode*>& nodes) {
+        for (auto* node : nodes) {
+            for (auto* compare_node : nodes) {
                 if (node == compare_node) continue;
 
-                for (auto& entry : node->node_mapping()) {
+                for (const auto& entry : node->node_mapping()) {
                     auto node_res = compare_node->node_mapping().find(entry.first);
                     if (node_res == compare_node->node_mapping().end()) {
                         TestLogging::test_printf("node %d in node %d not in compare_node listing %d", entry.first, node->id(), compare_node->id());
@@ -85,7 +85,7 @@ class TestNetworkBuilding {
                     }
                 }
 
-                for (auto& entry : node->ep_mapping()) {
+                for (const auto& entry : node->ep_mapping()) {
                     auto ep_res = compare_node->ep_mapping().find(entry.first);
                     if (ep_res == compare_node->ep_mapping().end()) return false;
                     if (entry.second.element().node() != ep_res->second.element().node()) {
@@ -94,7 +94,7 @@ class TestNetworkBuilding {
                     }
                 }
 
-                for (auto& entry : node->tr_mapping()) {
+                for (const auto& entry : node->tr_mapping()) {
                     auto tr_res = compare_node->tr_mapping().find(entry.first);
                     if (tr_res == compare_node->tr_mapping().end()) {
                         TestLogging::test_printf("node %d not and compare_node %d have mismatch tr %d", node->id(), compare_node->id(), entry.first);

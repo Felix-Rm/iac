@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #ifndef ARDUINO
 
 #    include <filesystem>
@@ -22,11 +23,10 @@ namespace iac {
 class Visualization {
    public:
     Visualization(const char* ip, int port, const char* site_path = VISUALIZATION_SITE_DIRECTORY);
-    ~Visualization() = default;
 
-    void add_node(string name, LocalNode& node);
-    void remove_node(LocalNode& node);
-    void remove_node(string name);
+    void add_node(const string& name, LocalNode& node);
+    void remove_node(const LocalNode& node);
+    void remove_node(const string& name);
 
     void update();
 
@@ -38,15 +38,16 @@ class Visualization {
     path parse_request();
     void answer_request(const path& path);
 
-    string get_mime_type(path file_path);
+    string get_mime_type(const path& file_path);
 
     unordered_map<string, LocalNode*> m_nodes;
     SocketServerTransportRoute m_server;
 
     const char* m_path;
 
-    char m_message_buffer[2048]{0};
-    char* m_buffer_pointer = m_message_buffer;
+    static constexpr unsigned s_message_buffer_size = 2048;
+    char m_message_buffer[s_message_buffer_size]{0};
+    size_t m_buffer_index{0};
 
     void send_header(const char* status, size_t size, const char* mime_type);
 

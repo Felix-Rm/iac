@@ -69,12 +69,14 @@ class ManagedNetworkEntry {
     }
 
     ManagedNetworkEntry& operator=(ManagedNetworkEntry&& other) {
-        move_from(move(other));
+        if (&other != this)
+            move_from(move(other));
         return *this;
     }
 
     ManagedNetworkEntry& operator=(const ManagedNetworkEntry& other) {
-        copy_from(other);
+        if (&other != this)
+            copy_from(other);
         return *this;
     }
 

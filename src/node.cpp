@@ -8,8 +8,9 @@ namespace iac {
 LocalNode::LocalNode(uint16_t heartbeat_interval_ms, uint16_t assume_dead_after_ms)
     : Node(unset_id), m_connection_keep_alive_pkg_every_ms(heartbeat_interval_ms), m_connection_dead_after_ms(assume_dead_after_ms) {
     m_local = true;
-    if (m_connection_keep_alive_pkg_every_ms < 100) m_connection_keep_alive_pkg_every_ms = 100;
-    if (m_connection_dead_after_ms < 200) m_connection_dead_after_ms = 200;
+
+    if (m_connection_keep_alive_pkg_every_ms < s_min_connection_keep_alive_time) m_connection_keep_alive_pkg_every_ms = s_min_connection_keep_alive_time;
+    if (m_connection_dead_after_ms < s_min_connection_dead_time) m_connection_dead_after_ms = s_min_connection_dead_time;
 };
 
 uint8_t LocalNode::get_tr_id() {
@@ -32,7 +33,11 @@ bool LocalNode::pop_tr_id(uint8_t id) {
     route.m_heartbeat_interval_ms = m_connection_keep_alive_pkg_every_ms;
     route.m_assume_dead_after_ms = m_connection_dead_after_ms;
 
-    route.m_id = (m_id << 8) | get_tr_id();
+    // node ids consist of a 2-byte int, the 8 msb are the node id
+    // the other 8 bits represent a unique (in LocalNode) id
+    static constexpr uint8_t shift_by = 8;
+
+    route.m_id = (m_id << shift_by) | get_tr_id();
     route.m_node1 = m_id;
 
     return add_transport_route((TransportRoute&)route);
@@ -145,7 +150,7 @@ bool LocalNode::remove_endpoint(ep_id_t ep_id) {
         return false;
     }
 
-    // TODO: dont create node when not existing
+    // TODO(felix): dont create node when not existing
     auto node_entry = add_node_if_not_existing(res->second->m_node);
     node_entry.second->m_endpoints.erase(res->first);
 
@@ -209,7 +214,7 @@ bool LocalNode::remove_node(node_id_t node_id) {
 std::pair<bool, ManagedNetworkEntry<Node>&> LocalNode::add_node_if_not_existing(node_id_t node_id) {
     auto res = m_node_mapping.find(node_id);
     if (res == m_node_mapping.end()) {
-        auto node = new Node(node_id);
+        auto* node = new Node(node_id);
         if (!add_node(*node)) {
             delete node;
             IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "add node failed, invalid state suspected");
@@ -219,10 +224,10 @@ std::pair<bool, ManagedNetworkEntry<Node>&> LocalNode::add_node_if_not_existing(
     return {false, m_node_mapping[node_id]};
 }
 
-std::pair<bool, ManagedNetworkEntry<Endpoint>&> LocalNode::add_ep_if_not_existing(ep_id_t ep_id, string name, node_id_t node) {
+std::pair<bool, ManagedNetworkEntry<Endpoint>&> LocalNode::add_ep_if_not_existing(ep_id_t ep_id, string&& name, node_id_t node) {
     auto res = m_ep_mapping.find(ep_id);
     if (res == m_ep_mapping.end()) {
-        auto ep = new Endpoint(ep_id, name, node);
+        auto ep = new Endpoint(ep_id, move(name), node);
         if (!add_endpoint(*ep)) {
             delete ep;
             IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "add ep failed, invalid state suspected");
@@ -245,9 +250,9 @@ std::pair<bool, ManagedNetworkEntry<TransportRoute>&> LocalNode::add_tr_if_not_e
     return {false, m_tr_mapping[tr_id]};
 }
 
-pair<tr_id_t, uint8_t> LocalNode::best_local_route(unordered_map<tr_id_t, uint8_t>& local_routes) {
+pair<tr_id_t, uint8_t> LocalNode::best_local_route(const unordered_map<tr_id_t, uint8_t>& local_routes) {
     pair<tr_id_t, uint8_t> best_route = *local_routes.begin();
-    for (auto& route : local_routes)
+    for (const auto& route : local_routes)
         if (route.second < best_route.second)
             best_route = route;
 
@@ -256,15 +261,18 @@ pair<tr_id_t, uint8_t> LocalNode::best_local_route(unordered_map<tr_id_t, uint8_
 
 bool LocalNode::handle_package(Package& package, LocalTransportRoute* route) {
     // if no route is forced, it has to be resolved
-    if (!route) {
+    if (route == nullptr) {
         if (package.type() == reserved_package_types::CONNECT) {
             return handle_connect(package);
-        } else if (package.type() == reserved_package_types::DISCONNECT) {
+        }
+        if (package.type() == reserved_package_types::DISCONNECT) {
             return handle_disconnect(package);
-        } else if (package.type() == reserved_package_types::HEARTBEAT) {
+        }
+        if (package.type() == reserved_package_types::HEARTBEAT) {
             package.route()->m_state = LocalTransportRoute::route_state::WORKING;
             return handle_heartbeat(package);
-        } else if (package.to() == reserved_endpoint_addresses::IAC) {
+        }
+        if (package.to() == reserved_endpoint_addresses::IAC) {
             IAC_HANDLE_EXCEPTION(InvalidPackageException, "package had reserved address, but not reserved type");
             return false;
         }
@@ -277,7 +285,7 @@ bool LocalNode::handle_package(Package& package, LocalTransportRoute* route) {
             return ((LocalEndpoint*)ep_entry->second.element_ptr())->handle_package(package);
 
         auto& available_routes = m_node_mapping[ep_entry->second->m_node]->m_local_routes;
-        if (available_routes.size() == 0)
+        if (available_routes.empty())
             return false;
 
         pair<tr_id_t, uint8_t> best_tr_entry = *(available_routes.begin());
@@ -305,7 +313,7 @@ bool LocalNode::handle_connect(Package& package) {
 
     auto relay = reader.boolean();
 
-    iac_log(debug, "received connect pkg %d\n", relay);
+    iac_log(Logging::loglevels::debug, "received connect pkg %d\n", relay);
 
     auto sender_pid = reader.num<node_id_t>();
     auto other_tr_id = reader.num<tr_id_t>();
@@ -318,7 +326,7 @@ bool LocalNode::handle_connect(Package& package) {
         add_node_if_not_existing(sender_pid).second->m_routes.insert(package.route()->id());
 
         if (other_tr_id < package.route()->id()) {
-            iac_log(debug, "changing route id\n");
+            iac_log(Logging::loglevels::debug, "changing route id\n");
             auto& new_entry = m_tr_mapping[other_tr_id];
             new_entry = move(m_tr_mapping[package.route()->id()]);
 
@@ -346,16 +354,16 @@ bool LocalNode::handle_connect(Package& package) {
             package.route()->m_id = other_tr_id;
         }
 
-        iac_log(connect, "connecting %d to %d\n", m_id, sender_pid);
+        iac_log(Logging::loglevels::connect, "connecting %d to %d\n", m_id, sender_pid);
 
         package.route()->m_heartbeat_interval_ms = other_connection_keep_alive_pkg_every_ms;
         package.route()->m_assume_dead_after_ms = other_connection_dead_after_ms;
 
-        iac_log(verbose, "connect with timing: %d %d\n",
+        iac_log(Logging::loglevels::verbose, "connect with timing: %d %d\n",
                 package.route()->m_heartbeat_interval_ms,
                 package.route()->m_assume_dead_after_ms);
     } else {
-        iac_log(debug, "relay pkg\n");
+        iac_log(Logging::loglevels::debug, "relay pkg\n");
     }
 
     auto res = add_node_if_not_existing(sender_pid);
@@ -364,7 +372,7 @@ bool LocalNode::handle_connect(Package& package) {
     auto num_ep_data = reader.num<uint8_t>();
     for (uint8_t i = 0; i < num_ep_data; ++i) {
         auto ep_id = reader.num<ep_id_t>();
-        auto ep_name = reader.str();
+        const auto* ep_name = reader.str();
         auto ep_node = reader.num<node_id_t>();
 
         add_ep_if_not_existing(ep_id, ep_name, ep_node);
@@ -410,7 +418,7 @@ bool LocalNode::handle_disconnect(LocalTransportRoute* route) {
     if (was_connected_to != unset_id) {
         m_tr_mapping[route->id()]->m_node2 = unset_id;
 
-        iac_log(connect, "disconnecting %d(self) from %d\n", m_id, was_connected_to);
+        iac_log(Logging::loglevels::connect, "disconnecting %d(self) from %d\n", m_id, was_connected_to);
 
         // the node the route was connected to
         auto& concerning_node = m_node_mapping[was_connected_to];
@@ -433,7 +441,7 @@ bool LocalNode::handle_disconnect(LocalTransportRoute* route) {
 }
 
 bool LocalNode::handle_heartbeat(const Package& package) {
-    // iac_log(debug,"heartbeat from: %d node: %p %d %d\n", package.from(),
+    // iac_log(Logging::loglevels::debug,"heartbeat from: %d node: %p %d %d\n", package.from(),
     //                this,
     //                timestamp() - package.route()->m_last_package_in,
     //                timestamp() - package.route()->m_last_package_out);
@@ -458,7 +466,7 @@ bool LocalNode::send(Endpoint& from, ep_id_t to, package_type_t type, const Buff
 }
 
 bool LocalNode::update() {
-    if (!m_ep_mapping.size()) {
+    if (m_ep_mapping.empty()) {
         IAC_HANDLE_EXCEPTION(NoRegisteredEndpointsException, "updating node with no endpoints");
         return false;
     }
@@ -469,7 +477,7 @@ bool LocalNode::update() {
             continue;
         }
 
-        auto route = (LocalTransportRoute*)it->second.element_ptr();
+        auto* route = (LocalTransportRoute*)it->second.element_ptr();
 
         it++;  // iterator might get invalidatend in handle_connect_package, so we have to increment now;
 
@@ -507,7 +515,7 @@ bool LocalNode::update() {
         m_mapping_changed = false;
         for (auto& route_entry : m_tr_mapping) {
             if (!route_entry.second->m_local) continue;
-            auto route = (LocalTransportRoute*)route_entry.second.element_ptr();
+            auto* route = (LocalTransportRoute*)route_entry.second.element_ptr();
             if (route->m_state != LocalTransportRoute::route_state::WORKING) continue;
             send_connect_package(route);
         }
@@ -517,7 +525,7 @@ bool LocalNode::update() {
 }
 
 bool LocalNode::route_try_read(LocalTransportRoute* route) {
-    for (size_t i = 0; i < 5 && route->available(); i++) {
+    for (size_t i = 0; i < s_num_package_reads_from_route_per_update && route->available() > 0; i++) {
         Package package;
         if (package.read_from(route)) {
             route->m_last_package_in = timestamp();
@@ -533,7 +541,7 @@ bool LocalNode::route_open(LocalTransportRoute* route) {
     if (route->m_state != LocalTransportRoute::route_state::OPEN && route->open())
         route->m_state = LocalTransportRoute::route_state::OPEN;
 
-    iac_log(network, "opening route %p [%s] %s\n", route, route->typestring().c_str(), route->m_state == LocalTransportRoute::route_state::OPEN ? "succeeded" : "failed");
+    iac_log(Logging::loglevels::network, "opening route %p [%s] %s\n", route, route->typestring().c_str(), route->m_state == LocalTransportRoute::route_state::OPEN ? "succeeded" : "failed");
     return true;
 }
 
@@ -543,7 +551,7 @@ bool LocalNode::route_close(LocalTransportRoute* route) {
         route->m_state = LocalTransportRoute::route_state::CLOSED;
     }
 
-    iac_log(network, "closing route %p [%s] %s\n", route, route->typestring().c_str(), route->m_state == LocalTransportRoute::route_state::CLOSED ? "succeeded" : "failed");
+    iac_log(Logging::loglevels::network, "closing route %p [%s] %s\n", route, route->typestring().c_str(), route->m_state == LocalTransportRoute::route_state::CLOSED ? "succeeded" : "failed");
     return true;
 }
 
@@ -557,7 +565,7 @@ bool LocalNode::route_keep_alive(LocalTransportRoute* route) {
                     reserved_endpoint_addresses::IAC,
                     reserved_package_types::HEARTBEAT, nullptr, 0};
 
-    // iac_log(debug,"sending heartbeat package\n");
+    // iac_log(Logging::loglevels::debug,"sending heartbeat package\n");
     //  package.print();
 
     return handle_package(package, route);
@@ -594,7 +602,7 @@ bool LocalNode::send_connect_package(LocalTransportRoute* route, bool relay) {
     for (auto& node_entry : m_node_mapping) {
         if (node_entry.second.element_ptr() == this) continue;
 
-        if (node_entry.second->m_local_routes.size() == 0) {
+        if (node_entry.second->m_local_routes.empty()) {
             IAC_HANDLE_FATAL_EXCEPTION(NonExistingException, "no local route leading to node, invalid state suspected");
             return false;
         }
@@ -609,7 +617,7 @@ bool LocalNode::send_connect_package(LocalTransportRoute* route, bool relay) {
                     reserved_endpoint_addresses::IAC,
                     reserved_package_types::CONNECT, writer.buffer(), writer.size()};
 
-    iac_log(network, "sending %s package from %d to %d\n", relay ? "relay" : "connect", m_id, m_tr_mapping[route->id()]->m_node2);
+    iac_log(Logging::loglevels::network, "sending %s package from %d to %d\n", relay ? "relay" : "connect", m_id, m_tr_mapping[route->id()]->m_node2);
     // package.print();
 
     return handle_package(package, route);
@@ -619,10 +627,10 @@ bool LocalNode::is_endpoint_connected(ep_id_t address) {
     return m_ep_mapping.find(address) != m_ep_mapping.end();
 }
 
-bool LocalNode::are_endpoints_connected(vector<ep_id_t> addresses) {
-    for (auto& address : addresses)
+bool LocalNode::are_endpoints_connected(const vector<ep_id_t>& addresses) {
+    for (const auto& address : addresses)
         if (!is_endpoint_connected(address)) {
-            iac_log(verbose, "node %d connected test failed for %d\n", m_id, address);
+            iac_log(Logging::loglevels::verbose, "node %d connected test failed for %d\n", m_id, address);
             return false;
         }
     return true;
@@ -640,7 +648,7 @@ void LocalNode::print_endpoint_list() {
                            ep_entry.element().id(),
                            routes.size());
 
-        for (auto& route_id : routes) {
+        for (const auto& route_id : routes) {
             auto& tr_entry = m_tr_mapping[route_id];
             IAC_PRINT_PROVIDER("  |   +-- ");
             IAC_PRINT_PROVIDER("route #%d of type %s [%s]", tr_entry.element().id(), tr_entry.element().typestring().c_str(), tr_entry.element().infostring().c_str());
@@ -653,31 +661,31 @@ void LocalNode::print_endpoint_list() {
 
 bool LocalNode::validate_network() {
     for (auto& node_entry : m_node_mapping) {
-        for (auto& ep_entry : node_entry.second->m_endpoints)
+        for (const auto& ep_entry : node_entry.second->m_endpoints)
             if (m_ep_mapping.find(ep_entry) == m_ep_mapping.end()) {
-                iac_log(error, "ep linked to node not registered\n");
+                iac_log(Logging::loglevels::error, "ep linked to node not registered\n");
                 return false;
             }
-        for (auto& tr_entry : node_entry.second->m_routes)
+        for (const auto& tr_entry : node_entry.second->m_routes)
             if (m_tr_mapping.find(tr_entry) == m_tr_mapping.end()) {
-                iac_log(error, "ep linked to node not registered\n");
+                iac_log(Logging::loglevels::error, "ep linked to node not registered\n");
                 return false;
             }
     }
 
     for (auto& node_entry : m_ep_mapping) {
         if (m_node_mapping.find(node_entry.second->m_node) == m_node_mapping.end()) {
-            iac_log(error, "node linked to ep not registered\n");
+            iac_log(Logging::loglevels::error, "node linked to ep not registered\n");
             return false;
         }
     }
     for (auto& node_entry : m_tr_mapping) {
         if (node_entry.second->m_node1 != unset_id && m_node_mapping.find(node_entry.second->m_node1) == m_node_mapping.end()) {
-            iac_log(error, "node1 linked to tr not registered\n");
+            iac_log(Logging::loglevels::error, "node1 linked to tr not registered\n");
             return false;
         }
         if (node_entry.second->m_node2 != unset_id && m_node_mapping.find(node_entry.second->m_node2) == m_node_mapping.end()) {
-            iac_log(error, "node2 linked to tr not registered\n");
+            iac_log(Logging::loglevels::error, "node2 linked to tr not registered\n");
             return false;
         }
     }
@@ -695,13 +703,13 @@ void LocalNode::print_network() {
         IAC_PRINT_PROVIDER("  |\n  +-- listing for node 0x%x\n", node_entry.element().id());
 
         IAC_PRINT_PROVIDER("  |  +-- local endpoints @ node:\n");
-        for (auto& ep_id : endpoints) {
+        for (const auto& ep_id : endpoints) {
             auto& ep_entry = m_ep_mapping[ep_id];
             IAC_PRINT_PROVIDER("  |  |  +-- ep id: 0x%x name: '%s'\n", ep_entry.element().id(), ep_entry.element().name().c_str());
         }
 
         IAC_PRINT_PROVIDER("  |  +-- connections from node:\n");
-        for (auto& tr_id : routes) {
+        for (const auto& tr_id : routes) {
             auto& tr_entry = m_tr_mapping[tr_id];
             IAC_PRINT_PROVIDER("  |  |  +-- tr id: 0x%x from: %d type: '%s' info: '%s'\n",
                                tr_entry.element().id(),
@@ -718,11 +726,11 @@ string LocalNode::network_representation(bool include_local_trs) {
     for (auto& node : m_node_mapping) {
         output += to_string(node.first) + (node.second->m_local ? "[_local]" : "[remote]") + ":";
         output += "eps[ ";
-        for (auto& ep_id : node.second->m_endpoints)
+        for (const auto& ep_id : node.second->m_endpoints)
             output += to_string(ep_id) + " ";
 
         output += "] trs[ ";
-        for (auto& tr_id : node.second->m_routes)
+        for (const auto& tr_id : node.second->m_routes)
             output += to_string(tr_id) + " ";
 
         if (include_local_trs) {

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <sys/types.h>
-
 #include <cstdint>
 #include <cstdio>
 #include <sstream>
@@ -52,8 +49,7 @@ class Node {
     const auto& local_routes() const { return m_local_routes; }
 
    private:
-    Node(node_id_t id) : m_id(id){};
-    ~Node() = default;
+    explicit Node(node_id_t id) : m_id(id){};
 
     node_id_t m_id = unset_id;
     bool m_local = false;
@@ -69,10 +65,9 @@ class LocalNode : public Node {
 
    public:
     LocalNode(uint16_t heartbeat_interval_ms = 0, uint16_t assume_dead_after_ms = 0);
-    ~LocalNode() = default;
 
     bool is_endpoint_connected(ep_id_t address);
-    bool are_endpoints_connected(vector<ep_id_t> addresses);
+    bool are_endpoints_connected(const vector<ep_id_t>& addresses);
 
     bool are_endpoints_connected(ep_id_t address) { return is_endpoint_connected(address); };
     template <typename... Args>
@@ -107,6 +102,10 @@ class LocalNode : public Node {
     const node_mapping_t& node_mapping() const { return m_node_mapping; };
 
    private:
+    static constexpr uint16_t s_min_connection_keep_alive_time = 100;
+    static constexpr uint16_t s_min_connection_dead_time = s_min_connection_keep_alive_time * 2;
+    static constexpr uint8_t s_num_package_reads_from_route_per_update = 5;
+
     uint16_t m_connection_keep_alive_pkg_every_ms;
     uint16_t m_connection_dead_after_ms;
 
@@ -127,7 +126,7 @@ class LocalNode : public Node {
     bool remove_node(node_id_t node_id);
 
     std::pair<bool, ManagedNetworkEntry<Node>&> add_node_if_not_existing(node_id_t node_id);
-    std::pair<bool, ManagedNetworkEntry<Endpoint>&> add_ep_if_not_existing(ep_id_t ep_id, string name, node_id_t node);
+    std::pair<bool, ManagedNetworkEntry<Endpoint>&> add_ep_if_not_existing(ep_id_t ep_id, string&& name, node_id_t node);
     std::pair<bool, ManagedNetworkEntry<TransportRoute>&> add_tr_if_not_existing(tr_id_t tr_id, node_id_t node1, node_id_t node2);
 
     bool handle_package(Package& package, LocalTransportRoute* route = nullptr);
@@ -147,12 +146,12 @@ class LocalNode : public Node {
 
     bool validate_network();
 
-    pair<tr_id_t, uint8_t> best_local_route(unordered_map<tr_id_t, uint8_t>& local_routes);
+    pair<tr_id_t, uint8_t> best_local_route(const unordered_map<tr_id_t, uint8_t>& local_routes);
 
     uint8_t get_tr_id();
     bool pop_tr_id(uint8_t id);
 
-    LocalTransportRoute::timestamp_t timestamp() {
+    static LocalTransportRoute::timestamp_t timestamp() {
 #ifdef ARDUINO
         return millis();
 #else

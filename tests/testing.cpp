@@ -12,7 +12,7 @@
 #include "test_send_receive.hpp"
 
 int main() {
-    iac::Logging::loglevel = iac::Logging::loglevels::network;
+    iac::Logging::set_loglevel(iac::Logging::loglevels::network);
 
     TestLogging::start_suite("communication");
 

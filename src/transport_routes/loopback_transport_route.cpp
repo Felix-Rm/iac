@@ -8,7 +8,7 @@ LoopbackTransportRoute::LoopbackTransportRoute(queue_t* write_queue, queue_t* re
 size_t LoopbackTransportRoute::read(void* buffer, size_t size) {
     size_t read_size = read_put_back_queue(buffer, size);
 
-    for (size_t i = 0; i < size && m_read_queue->size(); i++) {
+    for (size_t i = 0; i < size && !m_read_queue->empty(); i++) {
         ((uint8_t*)buffer)[i] = m_read_queue->front();
         m_read_queue->pop();
         read_size++;
@@ -47,12 +47,12 @@ bool LoopbackTransportRoute::close() {
 
 void LoopbackTransportRoute::printBuffer(int cols) {
     auto buffer_cp = *m_write_queue;
-    while (buffer_cp.size()) {
-        for (int i = 0; i < cols && buffer_cp.size(); i++) {
-            iac_log(debug, "%02x [%c]\t", buffer_cp.front(), buffer_cp.front() >= ' ' && buffer_cp.front() <= 127 ? buffer_cp.front() : '.');
+    while (!buffer_cp.empty()) {
+        for (int i = 0; i < cols && !buffer_cp.empty(); i++) {
+            iac_log(Logging::loglevels::debug, "%02x [%c]\t", buffer_cp.front(), buffer_cp.front() >= ' ' && buffer_cp.front() <= 127 ? buffer_cp.front() : '.');
             buffer_cp.pop();
         }
-        iac_log(debug, "\n");
+        iac_log(Logging::loglevels::debug, "\n");
     }
 }
 

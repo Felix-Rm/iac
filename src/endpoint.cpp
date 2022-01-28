@@ -68,7 +68,7 @@ void LocalEndpoint::add_package_handler(package_type_t for_type, package_handler
 
 bool LocalEndpoint::remove_package_handler(package_type_t for_type) {
     delete m_handlers[for_type].ptr.by_buffer;
-    return m_handlers.erase(for_type);
+    return m_handlers.erase(for_type) != 0U;
 }
 
 bool LocalEndpoint::handle_package(const Package& package) const {

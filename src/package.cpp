@@ -1,5 +1,7 @@
 #include "package.hpp"
 
+#include <cstring>
+
 #include "network_types.hpp"
 
 namespace iac {
@@ -19,14 +21,26 @@ Package::Package(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* b
     }
 }
 
-Package::Package(const Package& other) : Package(other.m_from, other.m_to, other.m_type, other.m_payload, other.m_payload_size, Package::buffer_management::COPY) {
-    m_over_route = other.m_over_route;
+void Package::copy_from(const Package& other) {
+    m_from = other.m_from;
+    m_to = other.m_to;
+    m_type = other.m_type;
+    m_payload_size = other.m_payload_size;
+    m_buffer_type = buffer_management::COPY;
+    memmove(m_payload, other.m_payload, m_payload_size);
 }
 
-Package::Package(Package&& other) : Package(other.m_from, other.m_to, other.m_type, other.m_payload, other.m_payload_size) {
+void Package::move_from(Package& other) {
+    m_from = other.m_from;
+    m_to = other.m_to;
+    m_type = other.m_type;
+    m_payload_size = other.m_payload_size;
+    m_buffer_type = other.m_buffer_type;
+    m_payload = other.m_payload;
+
     other.m_payload = nullptr;
     other.m_payload_size = 0;
-    m_over_route = other.m_over_route;
+    other.m_buffer_type = buffer_management::EMPTY;
 }
 
 Package::~Package() {
@@ -46,7 +60,7 @@ bool Package::send_over(LocalTransportRoute* route) const {
     route->write(&m_from, sizeof(ep_id_t));
     route->write(&m_type, sizeof(package_type_t));
 
-    if (m_payload_size)
+    if (m_payload_size > 0)
         route->write(m_payload, m_payload_size);
 
     route->flush();
@@ -62,7 +76,7 @@ bool Package::read_from(LocalTransportRoute* route) {
     route->write(&dummy, 1);
 #endif
 
-    if (route->m_wait_for_available_size && route->available() < route->m_wait_for_available_size)
+    if (route->m_wait_for_available_size > 0 && route->available() < route->m_wait_for_available_size)
         return false;
 
     if (route->available() < m_pre_header_size)
@@ -71,7 +85,6 @@ bool Package::read_from(LocalTransportRoute* route) {
     route->m_wait_for_available_size = 0;
 
     start_byte_t start_byte = 0;
-    package_size_t package_size;
 
     while (route->available() >= m_pre_header_size) {
         if (route->read(&start_byte, sizeof(start_byte_t)) != sizeof(start_byte_t)) {
@@ -85,11 +98,12 @@ bool Package::read_from(LocalTransportRoute* route) {
 
         // NOTE: zero-bytes can be used as dummy writes by transport routes, so no warning to avoid spamming
         if (start_byte != 0)
-            iac_log(warning, "corrupt message start\n");
+            iac_log(Logging::loglevels::warning, "corrupt message start\n");
     }
 
     if (start_byte != m_startbyte) return false;
 
+    package_size_t package_size = 0;
     if (route->read(&package_size, sizeof(package_size_t)) != sizeof(package_size_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading package_len returned less bytes than 'available'");
 
@@ -131,7 +145,7 @@ bool Package::read_from(LocalTransportRoute* route) {
     m_payload = new uint8_t[m_payload_size];
     m_buffer_type = buffer_management::COPY;  // we need to delete this on deconstruction
 
-    if (m_payload_size)
+    if (m_payload_size > 0)
         if (route->read(m_payload, m_payload_size) != m_payload_size) {
             IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading payload returned less bytes than 'available'");
             return false;
@@ -152,9 +166,12 @@ void Package::print() const {
     IAC_PRINT_PROVIDER("\tfrom: %03u\n", m_from);
     IAC_PRINT_PROVIDER("\ttype: 0x%03u\n", m_type);
 
+    static constexpr unsigned bytes_per_line = 6;
+    static constexpr unsigned max_lines = 20;
+
     IAC_PRINT_PROVIDER("\tpayload:");
-    for (size_t i = 0; i < m_payload_size && i < 6 * 20; i++)
-        IAC_PRINT_PROVIDER((i % 6 == 5 && i + 1 < m_payload_size) ? " @0x%02lx:0x%02x[%c]\n\t        " : " @0x%02lx:0x%02x[%c]", i, m_payload[i], (m_payload[i] >= ' ' && m_payload[i] <= 127) ? m_payload[i] : '.');
+    for (unsigned i = 0; i < m_payload_size && i < bytes_per_line * max_lines; i++)
+        IAC_PRINT_PROVIDER((i % bytes_per_line == bytes_per_line - 1 && i + 1 < m_payload_size) ? " @0x%02x:0x%02x[%c]\n\t        " : " @0x%02x:0x%02x[%c]", i, m_payload[i], (m_payload[i] >= ' ' && m_payload[i] <= 127) ? m_payload[i] : '.');
 
     IAC_PRINT_PROVIDER("\n\tpayload_size: %d\n\n", m_payload_size);
 }

@@ -55,7 +55,7 @@ class TestDisconnectReconnect {
     };
 
    private:
-    static void pkg_handler(const iac::Package& pkg, iac::BufferReader&& reader, void* counter) {
+    static void pkg_handler(const iac::Package& pkg, iac::BufferReader&& /*unused*/, void* counter) {
         TestLogging::test_printf("received package from %d", pkg.from());
         (*(int*)counter)++;
     };

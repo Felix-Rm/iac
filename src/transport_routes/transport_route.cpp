@@ -3,7 +3,7 @@
 namespace iac {
 
 void LocalTransportRoute::put_back(const void* buffer, size_t size) {
-    uint8_t* cursor = (uint8_t*)buffer;
+    auto* cursor = (uint8_t*)buffer;
 
     for (size_t i = 0; i < size; i++) {
         m_put_back_queue.push(*cursor++);
@@ -11,10 +11,10 @@ void LocalTransportRoute::put_back(const void* buffer, size_t size) {
 }
 
 size_t LocalTransportRoute::read_put_back_queue(void*& buffer, size_t& size) {
-    uint8_t*& cursor = (uint8_t*&)buffer;
+    auto& cursor = (uint8_t*&)buffer;
     size_t read_size = 0;
 
-    while (m_put_back_queue.size() && size > 0) {
+    while (!m_put_back_queue.empty() && size > 0) {
         *cursor++ = m_put_back_queue.front();
         m_put_back_queue.pop();
         size--;
