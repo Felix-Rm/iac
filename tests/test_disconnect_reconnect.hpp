@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <exception>
 #include <thread>
 
 #include "ftest/test_logging.hpp"
@@ -44,7 +45,7 @@ class TestDisconnectReconnect {
 
                 std::this_thread::sleep_for(200ms);
             }
-        } catch (iac::Exception& e) {
+        } catch (std::exception& e) {
             return {e.what()};
         }
 

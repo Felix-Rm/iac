@@ -1,9 +1,23 @@
 #pragma once
 
-#ifdef ARDUINO
-#    include <Arduino.h>
-#    define IAC_PRINT_PROVIDER(...) Serial.printf(__VA_ARGS__)
-#else
-#    include <cstdio>
-#    define IAC_PRINT_PROVIDER(...) printf(__VA_ARGS__)
+#ifndef IAC_DISABLE_PRINTING
+
+#    ifdef ARDUINO
+#        include <Arduino.h>
+#    else
+#        include <cstdio>
+#    endif
+
+namespace iac {
+
+template <typename... Args>
+inline constexpr int iac_printf(Args... args) {
+#    ifdef ARDUINO
+    return Serial.printf(args...);
+#    else
+    return printf(args...);
+#    endif
+}
+}  // namespace iac
+
 #endif

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "exceptions.hpp"
 #include "logging.hpp"
 #include "std_provider/limits.hpp"
 #include "std_provider/printf.hpp"
@@ -11,10 +12,8 @@
 
 namespace iac {
 
-#ifndef IAC_DISABLE_EXCEPTIONS
-IAC_CREATE_MESSAGE_EXCEPTION(BufferWriterGrowException);
-IAC_CREATE_MESSAGE_EXCEPTION(BufferReaderOutOfBounds);
-#endif
+IAC_MAKE_EXCEPTION(BufferWriterGrowException);
+IAC_MAKE_EXCEPTION(BufferReaderOutOfBounds);
 
 class BufferReader {
    public:
@@ -25,11 +24,11 @@ class BufferReader {
         return m_buffer;
     }
 
-    const size_t size() const {
+    size_t size() const {
         return m_buffer_len;
     }
 
-    operator bool() const {
+    explicit operator bool() const {
         return (size_t)(m_cursor - m_buffer) < m_buffer_len;
     }
 
@@ -38,7 +37,7 @@ class BufferReader {
     template <typename T>
     T num() {
         if (!can_read(sizeof(T))) {
-            IAC_HANDLE_EXCEPTION(BufferReaderOutOfBounds, "reader out of bounds reading num");
+            IAC_HANDLE_EXCPETION(BufferReaderOutOfBounds, "reader out of bounds reading num");
             return 0;
         }
         T result;
@@ -49,7 +48,7 @@ class BufferReader {
 
     bool boolean() {
         if (!can_read(sizeof(uint8_t))) {
-            IAC_HANDLE_EXCEPTION(BufferReaderOutOfBounds, "reader out of bounds reading boolean");
+            IAC_HANDLE_EXCPETION(BufferReaderOutOfBounds, "reader out of bounds reading boolean");
             return false;
         }
         return num<uint8_t>();

@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "endpoint.hpp"
+#include "exceptions.hpp"
 #include "forward.hpp"
 #include "logging.hpp"
 #include "network_types.hpp"
@@ -24,14 +25,12 @@
 
 namespace iac {
 
-#ifndef IAC_DISABLE_EXCEPTIONS
-IAC_CREATE_MESSAGE_EXCEPTION(OutOfTrIdException);
-IAC_CREATE_MESSAGE_EXCEPTION(RemoveOfInvalidException);
-IAC_CREATE_MESSAGE_EXCEPTION(NoRegisteredEndpointsException);
-IAC_CREATE_MESSAGE_EXCEPTION(AddDuplicateException);
-IAC_CREATE_MESSAGE_EXCEPTION(NonExistingException);
-IAC_CREATE_MESSAGE_EXCEPTION(NetworkStateException);
-#endif
+IAC_MAKE_EXCEPTION(OutOfTrIdException);
+IAC_MAKE_EXCEPTION(RemoveOfInvalidException);
+IAC_MAKE_EXCEPTION(NoRegisteredEndpointsException);
+IAC_MAKE_EXCEPTION(AddDuplicateException);
+IAC_MAKE_EXCEPTION(NonExistingException);
+IAC_MAKE_EXCEPTION(NetworkStateException);
 
 class Node {
     friend LocalNode;

@@ -21,7 +21,7 @@ uint8_t LocalNode::get_tr_id() {
         }
     }
 
-    IAC_HANDLE_FATAL_EXCEPTION(OutOfTrIdException, "no more available ids for transport-routes");
+    IAC_HANDLE_FATAL_EXCPETION(OutOfTrIdException, "no more available ids for transport-routes");
     return 0;
 }
 
@@ -45,7 +45,7 @@ bool LocalNode::pop_tr_id(uint8_t id) {
 
 [[nodiscard]] bool LocalNode::add_transport_route(TransportRoute& route) {
     if (m_tr_mapping.find(route.id()) != m_tr_mapping.end()) {
-        IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "added already existing route, memory leak suspected");
+        IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "added already existing route, memory leak suspected");
         return false;
     }
 
@@ -77,7 +77,7 @@ bool LocalNode::remove_transport_route(tr_id_t route_id) {
     const auto& res = m_tr_mapping.find(route_id);
 
     if (res == m_tr_mapping.end()) {
-        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant tr");
+        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant tr");
         return false;
     }
 
@@ -85,7 +85,7 @@ bool LocalNode::remove_transport_route(tr_id_t route_id) {
         auto node1_entry = add_node_if_not_existing(res->second->m_node1);
         if (node1_entry.first) {
             remove_node(res->second->m_node1);  // clean up as best we can, network model is in invalid state
-            IAC_HANDLE_FATAL_EXCEPTION(RemoveOfInvalidException, "linked node was non existant");
+            IAC_HANDLE_FATAL_EXCPETION(RemoveOfInvalidException, "linked node was non existant");
         }
         node1_entry.second->m_routes.erase(res->first);
         node1_entry.second->m_local_routes.erase(res->first);
@@ -95,7 +95,7 @@ bool LocalNode::remove_transport_route(tr_id_t route_id) {
         auto node2_entry = add_node_if_not_existing(res->second->m_node2);
         if (node2_entry.first) {
             remove_node(res->second->m_node2);  // clean up as best we can, network model is in invalid state
-            IAC_HANDLE_FATAL_EXCEPTION(RemoveOfInvalidException, "linked node was non existant");
+            IAC_HANDLE_FATAL_EXCPETION(RemoveOfInvalidException, "linked node was non existant");
         }
         node2_entry.second->m_routes.erase(res->first);
         node2_entry.second->m_local_routes.erase(res->first);
@@ -126,7 +126,7 @@ bool LocalNode::remove_local_endpoint(LocalEndpoint& ep) {
 
 [[nodiscard]] bool LocalNode::add_endpoint(Endpoint& ep) {
     if (m_ep_mapping.find(ep.id()) != m_ep_mapping.end()) {
-        IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "added already existing endpoint, memory leak suspected");
+        IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "added already existing endpoint, memory leak suspected");
         return false;
     }
 
@@ -146,7 +146,7 @@ bool LocalNode::remove_endpoint(ep_id_t ep_id) {
     const auto& res = m_ep_mapping.find(ep_id);
 
     if (res == m_ep_mapping.end()) {
-        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant ep");
+        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant ep");
         return false;
     }
 
@@ -165,7 +165,7 @@ bool LocalNode::remove_endpoint(ep_id_t ep_id) {
 
 [[nodiscard]] bool LocalNode::add_node(Node& node) {
     if (m_node_mapping.find(node.id()) != m_node_mapping.end()) {
-        IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "added already existing node, memory leak suspected");
+        IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "added already existing node, memory leak suspected");
         return false;
     }
 
@@ -182,14 +182,14 @@ bool LocalNode::remove_node(node_id_t node_id) {
     const auto& res = m_node_mapping.find(node_id);
 
     if (res == m_node_mapping.end()) {
-        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant node");
+        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant node");
         return false;
     }
 
     for (auto it = res->second->m_endpoints.begin(); it != res->second->m_endpoints.end();) {
         auto ep_id = *it++;
         if (!remove_endpoint(ep_id)) {
-            IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant, but linked ep");
+            IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant, but linked ep");
             return false;
         }
     }
@@ -197,7 +197,7 @@ bool LocalNode::remove_node(node_id_t node_id) {
     for (auto it = res->second->m_routes.begin(); it != res->second->m_routes.end();) {
         auto tr_id = *it++;
         if (!remove_transport_route(tr_id)) {
-            IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant, but linked tr");
+            IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant, but linked tr");
             return false;
         }
     }
@@ -217,7 +217,7 @@ std::pair<bool, ManagedNetworkEntry<Node>&> LocalNode::add_node_if_not_existing(
         auto* node = new Node(node_id);
         if (!add_node(*node)) {
             delete node;
-            IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "add node failed, invalid state suspected");
+            IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "add node failed, invalid state suspected");
         }
         return {true, m_node_mapping[node_id]};
     }
@@ -230,7 +230,7 @@ std::pair<bool, ManagedNetworkEntry<Endpoint>&> LocalNode::add_ep_if_not_existin
         auto ep = new Endpoint(ep_id, move(name), node);
         if (!add_endpoint(*ep)) {
             delete ep;
-            IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "add ep failed, invalid state suspected");
+            IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "add ep failed, invalid state suspected");
         }
         return {true, m_ep_mapping[ep_id]};
     }
@@ -243,7 +243,7 @@ std::pair<bool, ManagedNetworkEntry<TransportRoute>&> LocalNode::add_tr_if_not_e
         auto tr = new TransportRoute(tr_id, node1, node2);
         if (!add_transport_route(*tr)) {
             delete tr;
-            IAC_HANDLE_FATAL_EXCEPTION(AddDuplicateException, "add tr failed, invalid state suspected");
+            IAC_HANDLE_FATAL_EXCPETION(AddDuplicateException, "add tr failed, invalid state suspected");
         }
         return {true, m_tr_mapping[tr_id]};
     }
@@ -273,7 +273,7 @@ bool LocalNode::handle_package(Package& package, LocalTransportRoute* route) {
             return handle_heartbeat(package);
         }
         if (package.to() == reserved_endpoint_addresses::IAC) {
-            IAC_HANDLE_EXCEPTION(InvalidPackageException, "package had reserved address, but not reserved type");
+            IAC_HANDLE_EXCPETION(InvalidPackageException, "package had reserved address, but not reserved type");
             return false;
         }
 
@@ -467,7 +467,7 @@ bool LocalNode::send(Endpoint& from, ep_id_t to, package_type_t type, const Buff
 
 bool LocalNode::update() {
     if (m_ep_mapping.empty()) {
-        IAC_HANDLE_EXCEPTION(NoRegisteredEndpointsException, "updating node with no endpoints");
+        IAC_HANDLE_EXCPETION(NoRegisteredEndpointsException, "updating node with no endpoints");
         return false;
     }
 
@@ -603,7 +603,7 @@ bool LocalNode::send_connect_package(LocalTransportRoute* route, bool relay) {
         if (node_entry.second.element_ptr() == this) continue;
 
         if (node_entry.second->m_local_routes.empty()) {
-            IAC_HANDLE_FATAL_EXCEPTION(NonExistingException, "no local route leading to node, invalid state suspected");
+            IAC_HANDLE_FATAL_EXCPETION(NonExistingException, "no local route leading to node, invalid state suspected");
             return false;
         }
 
@@ -637,25 +637,25 @@ bool LocalNode::are_endpoints_connected(const vector<ep_id_t>& addresses) {
 }
 
 void LocalNode::print_endpoint_list() {
-    IAC_PRINT_PROVIDER("endpoint listing for #%d @ %p\n", m_id, this);
+    iac_printf("endpoint listing for #%d @ %p\n", m_id, this);
     for (auto& entry : m_ep_mapping) {
         auto& ep_entry = entry.second;
         auto& routes = m_node_mapping[entry.second->m_node]->m_routes;
 
-        IAC_PRINT_PROVIDER("  |\n  +-- %s - routes to%s endpoint #%d (%lu):\n",
-                           ep_entry.element().name().c_str(),
-                           ep_entry->m_local ? " local" : "",
-                           ep_entry.element().id(),
-                           routes.size());
+        iac_printf("  |\n  +-- %s - routes to%s endpoint #%d (%lu):\n",
+                   ep_entry.element().name().c_str(),
+                   ep_entry->m_local ? " local" : "",
+                   ep_entry.element().id(),
+                   routes.size());
 
         for (const auto& route_id : routes) {
             auto& tr_entry = m_tr_mapping[route_id];
-            IAC_PRINT_PROVIDER("  |   +-- ");
-            IAC_PRINT_PROVIDER("route #%d of type %s [%s]", tr_entry.element().id(), tr_entry.element().typestring().c_str(), tr_entry.element().infostring().c_str());
-            IAC_PRINT_PROVIDER("\n");
+            iac_printf("  |   +-- ");
+            iac_printf("route #%d of type %s [%s]", tr_entry.element().id(), tr_entry.element().typestring().c_str(), tr_entry.element().infostring().c_str());
+            iac_printf("\n");
         }
 
-        IAC_PRINT_PROVIDER("\n");
+        iac_printf("\n");
     }
 }
 
@@ -694,28 +694,28 @@ bool LocalNode::validate_network() {
 }
 
 void LocalNode::print_network() {
-    IAC_PRINT_PROVIDER("network state for #%d @ %p\n", m_id, this);
+    iac_printf("network state for #%d @ %p\n", m_id, this);
     for (auto& entry : m_node_mapping) {
         auto& node_entry = entry.second;
         auto& routes = node_entry->m_routes;
         auto& endpoints = node_entry->m_endpoints;
 
-        IAC_PRINT_PROVIDER("  |\n  +-- listing for node 0x%x\n", node_entry.element().id());
+        iac_printf("  |\n  +-- listing for node 0x%x\n", node_entry.element().id());
 
-        IAC_PRINT_PROVIDER("  |  +-- local endpoints @ node:\n");
+        iac_printf("  |  +-- local endpoints @ node:\n");
         for (const auto& ep_id : endpoints) {
             auto& ep_entry = m_ep_mapping[ep_id];
-            IAC_PRINT_PROVIDER("  |  |  +-- ep id: 0x%x name: '%s'\n", ep_entry.element().id(), ep_entry.element().name().c_str());
+            iac_printf("  |  |  +-- ep id: 0x%x name: '%s'\n", ep_entry.element().id(), ep_entry.element().name().c_str());
         }
 
-        IAC_PRINT_PROVIDER("  |  +-- connections from node:\n");
+        iac_printf("  |  +-- connections from node:\n");
         for (const auto& tr_id : routes) {
             auto& tr_entry = m_tr_mapping[tr_id];
-            IAC_PRINT_PROVIDER("  |  |  +-- tr id: 0x%x from: %d type: '%s' info: '%s'\n",
-                               tr_entry.element().id(),
-                               entry.first == tr_entry->m_node1 ? tr_entry->m_node2 : tr_entry->m_node1,
-                               tr_entry.element().typestring().c_str(),
-                               tr_entry.element().infostring().c_str());
+            iac_printf("  |  |  +-- tr id: 0x%x from: %d type: '%s' info: '%s'\n",
+                       tr_entry.element().id(),
+                       entry.first == tr_entry->m_node1 ? tr_entry->m_node2 : tr_entry->m_node1,
+                       tr_entry.element().typestring().c_str(),
+                       tr_entry.element().infostring().c_str());
         }
     }
 }

@@ -34,14 +34,14 @@ class Logging {
         s_loglevel = level;
     }
 
-#ifdef IAC_PRINT_PROVIDER
+#ifndef IAC_DISABLE_PRINTING
 #    define iac_log(level, ...) Logging::log(__FILE__, __LINE__, level, __VA_ARGS__);
 
     static constexpr void log_head(const char* file, unsigned line, loglevel_t level) {
 #    ifdef IAC_LOG_WITH_LINE_NUMBERS
-        IAC_PRINT_PROVIDER(s_log_head_fmt_with_line_info, s_level_colors[(int)level], s_level_names[(int)level], file, line);
+        iac_printf(s_log_head_fmt_with_line_info, s_level_colors[(int)level], s_level_names[(int)level], file, line);
 #    else
-        IAC_PRINT_PROVIDER(s_log_head_fmt, s_level_colors[(int)level], s_level_names[(int)level]);
+        iac_printf(s_log_head_fmt, s_level_colors[(int)level], s_level_names[(int)level]);
 #    endif
     }
 
@@ -49,7 +49,7 @@ class Logging {
     static constexpr void log(const char* file, unsigned line, loglevel_t level, Args... args) {
         if (s_loglevel >= level) {
             log_head(file, line, level);
-            IAC_PRINT_PROVIDER(args...);
+            iac_printf(args...);
         }
     }
 

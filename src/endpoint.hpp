@@ -14,9 +14,7 @@
 
 namespace iac {
 
-#ifndef IAC_DISABLE_EXCEPTIONS
-IAC_CREATE_MESSAGE_EXCEPTION(EndpointException);
-#endif
+IAC_MAKE_EXCEPTION(EndpointException);
 
 class Endpoint {
     friend LocalNode;

@@ -9,16 +9,11 @@
 #include "std_provider/limits.hpp"
 #include "std_provider/printf.hpp"
 #include "std_provider/string.hpp"
-
-#ifndef IAC_DISABLE_EXCEPTIONS
-#    include <exception>
-#endif
-
 #include "transport_routes/transport_route.hpp"
 
 namespace iac {
 
-IAC_CREATE_MESSAGE_EXCEPTION(InvalidPackageException);
+IAC_MAKE_EXCEPTION(InvalidPackageException);
 
 class Package {
    public:
