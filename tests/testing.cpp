@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     TestLogging::run<TestSendReceive>();
     TestLogging::run<TestNetworkBuilding>();
 
-    if (argc >= 2 && strncmp(argv[0], "-h", 2) == 2) {
+    if (argc >= 2 && strncmp(argv[1], "-h", 2) == 0) {
         TestLogging::start_suite("visualization");
         TestLogging::run<TestNetworkVisualization>();
     }
