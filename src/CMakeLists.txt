@@ -19,14 +19,14 @@ set(cpp_files
     "local_endpoint.cpp"
     "logging.cpp"
     "network.cpp"
-    "network_visualization/network_visualization.cpp"
-    "transport_routes/local_transport_route.cpp"
-    "transport_routes/socket_transport_route.cpp"
-    "transport_routes/loopback_transport_route.cpp"
 )
 
+add_subdirectory(transport_routes/)
+add_subdirectory(network_visualization/)
 
-add_library(iac ${cpp_files})
+
+add_library(iac STATIC ${cpp_files})
+target_link_libraries(iac transport_routes network_visualization)
 
 target_include_directories(iac PRIVATE ./)
 target_include_directories(iac PRIVATE ../dependencies/)
