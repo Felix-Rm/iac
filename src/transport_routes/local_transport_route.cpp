@@ -1,6 +1,8 @@
-#include "transport_route.hpp"
+#include "local_transport_route.hpp"
 
 namespace iac {
+
+LocalTransportRoute::LocalTransportRoute() { set_local(true); };
 
 void LocalTransportRoute::put_back(const void* buffer, size_t size) {
     auto* cursor = (uint8_t*)buffer;

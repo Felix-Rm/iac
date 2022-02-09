@@ -2,6 +2,8 @@
 
 namespace iac {
 
+class Network;
+
 class Node;
 class LocalNode;
 

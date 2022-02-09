@@ -1,9 +1,3 @@
-
-#include <unordered_map>
-
-#include "network_types.hpp"
-#include "std_provider/string.hpp"
-
 #ifndef ARDUINO
 
 #    include "network_visualization/network_visualization.hpp"
@@ -22,38 +16,40 @@ Visualization::Visualization(const char* ip, int port, const char* site_path) : 
     m_mime_types[".txt"] = "text/plain";
 }
 
-void Visualization::add_node(const string& name, LocalNode& node) {
-    m_nodes[name] = &node;
+void Visualization::add_network(const string& name, const Network& network) {
+    m_networks[name] = &network;
 }
 
-void Visualization::remove_node(const LocalNode& node) {
-    for (auto it = m_nodes.begin(); it != m_nodes.end();) {
-        if (it->second == &node)
-            it = m_nodes.erase(it);
+void Visualization::remove_network(const Network& network) {
+    for (auto it = m_networks.begin(); it != m_networks.end();) {
+        if (it->second == &network)
+            it = m_networks.erase(it);
         else
             it++;
     }
 }
 
-void Visualization::remove_node(const string& name) {
-    m_nodes.erase(name);
+void Visualization::remove_network(const string& name) {
+    m_networks.erase(name);
 }
 
 void Visualization::update() {
-    if (m_server.m_state != LocalTransportRoute::route_state::OPEN) {
-        m_server.m_state = m_server.open() ? LocalTransportRoute::route_state::OPEN : LocalTransportRoute::route_state::CLOSED;
+    if (m_server.state() != LocalTransportRoute::route_state::OPEN) {
+        m_server.state() = m_server.open() ? LocalTransportRoute::route_state::OPEN : LocalTransportRoute::route_state::CLOSED;
+        m_failed_reads = 0;
     }
 
-    if (m_server.m_state == LocalTransportRoute::route_state::OPEN) {
-        path result;
+    if (m_server.state() == LocalTransportRoute::route_state::OPEN) {
+        path result = parse_request();
 
-        while (!(result = parse_request()).empty())
+        if (!result.empty())
             answer_request(result);
     }
 }
 
 Visualization::path Visualization::parse_request() {
     static constexpr unsigned path_start_index = 5;
+    static constexpr unsigned request_end_signal_length = 4;
 
     size_t available = m_server.available();
     path requested_path;
@@ -64,7 +60,7 @@ Visualization::path Visualization::parse_request() {
         // printf("request in\n");
 
         // check if entire request has been read (http requests end with two newlines)
-        if (m_buffer_index > path_start_index && strncmp("\r\n\r\n", &m_message_buffer[m_buffer_index - path_start_index], path_start_index - 1) == 0) {
+        if (m_buffer_index > path_start_index && strncmp("\r\n\r\n", &(m_message_buffer[m_buffer_index - request_end_signal_length]), request_end_signal_length) == 0) {
             // reset buffer_pointer
             m_buffer_index = 0;
 
@@ -91,27 +87,28 @@ void Visualization::answer_request(const Visualization::path& path) {
     if (path == "data") {
         string data;
 
-        for (const auto& map_entry : m_nodes) {
-            auto& node = *map_entry.second;
+        for (const auto& map_entry : m_networks) {
+            const auto& network = *map_entry.second;
 
             int node_id_counter = 0;
-            std::unordered_map<iac::node_id_t, int> node_id_mapping;
+            unordered_map<iac::node_id_t, int> node_id_mapping;
 
             data += ":$" + map_entry.first + "\n";
 
-            for (auto& entry : node.m_node_mapping) {
+            for (const auto& entry : network.node_mapping()) {
                 node_id_mapping[entry.first] = node_id_counter++;
-                data += "#$" + std::to_string(node_id_mapping[entry.first]);
+                data += "#$" + to_string(node_id_mapping[entry.first]);
 
                 for (const auto& endpoint_id : entry.second->endpoints()) {
-                    auto& ep = node.m_ep_mapping[endpoint_id].element();
-                    data += '$' + std::to_string(ep.id()) + '$' + ep.name();
+                    const auto& ep = network.endpoint(endpoint_id);
+                    data += '$' + to_string(ep.id()) + '$' + ep.name();
                 }
                 data += '\n';
             }
 
-            for (auto& entry : node.m_tr_mapping) {
-                data += "~$" + std::to_string(node_id_mapping[entry.second->node1()]) + '$' + std::to_string(node_id_mapping[entry.second->node2()]);
+            for (const auto& entry : network.route_mapping()) {
+                data += "~$" + to_string(node_id_mapping[entry.second->node1()]) + '$' + to_string(node_id_mapping[entry.second->node2()]);
+                data += '$' + to_string(entry.second.element().id());
                 data += '$' + entry.second.element().typestring() + '$' + entry.second.element().infostring() + '\n';
             }
         }
@@ -134,7 +131,7 @@ void Visualization::answer_request(const Visualization::path& path) {
     }
 
     m_server.flush();
-    m_server.m_state = m_server.close() ? LocalTransportRoute::route_state::CLOSED : LocalTransportRoute::route_state::OPEN;
+    m_server.state() = m_server.close() ? LocalTransportRoute::route_state::CLOSED : LocalTransportRoute::route_state::OPEN;
     // printf("closed %d\n", m_server.state == TransportRoute::route_state::CLOSED);
 }
 

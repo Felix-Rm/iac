@@ -1,24 +1,20 @@
 #pragma once
 
-#include <cstring>
-#include <iomanip>
-#include <iostream>
-
 #include "forward.hpp"
 #include "network_types.hpp"
 #include "std_provider/limits.hpp"
 #include "std_provider/printf.hpp"
 #include "std_provider/string.hpp"
-#include "transport_routes/transport_route.hpp"
+#include "transport_routes/local_transport_route.hpp"
 
 namespace iac {
 
 IAC_MAKE_EXCEPTION(InvalidPackageException);
 
 class Package {
-   public:
     friend LocalNode;
 
+   public:
     enum buffer_management {
         IN_PLACE,
         COPY,
@@ -64,13 +60,14 @@ class Package {
 
     void print() const;
 
-   private:
+   protected:
     bool send_over(LocalTransportRoute*) const;
     bool read_from(LocalTransportRoute*);
 
     void copy_from(const Package& other);
     void move_from(Package& other);
 
+   private:
     static constexpr size_t s_pre_header_size = sizeof(start_byte_t) + sizeof(package_size_t);
     static constexpr size_t s_info_header_size = sizeof(ep_id_t) * 2 + sizeof(metadata_t) + sizeof(package_type_t);
     static constexpr size_t s_max_payload_size = numeric_limits<package_size_t>::max() - s_info_header_size;

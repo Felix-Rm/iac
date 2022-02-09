@@ -12,15 +12,17 @@ add_compile_definitions( VISUALIZATION_SITE_DIRECTORY="${viz_site_dir}")
 # add_compile_definitions(IAC_DISABLE_LOG_WITH_LINE_NUMBERS)
 
 set(cpp_files
-    "endpoint.cpp"
     "buffer_rw.cpp"
-    "node.cpp"
     "package.cpp"
+    "local_node.cpp"
+    "local_endpoint.cpp"
     "logging.cpp"
+    "network.cpp"
     "network_visualization/network_visualization.cpp"
-    "transport_routes/transport_route.cpp"
+    "transport_routes/local_transport_route.cpp"
     "transport_routes/socket_transport_route.cpp"
-    "transport_routes/loopback_transport_route.cpp")
+    "transport_routes/loopback_transport_route.cpp"
+)
 
 
 add_library(iac ${cpp_files})

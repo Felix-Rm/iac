@@ -85,8 +85,9 @@ function reset() {
                         network_data[current_name].links.push({
                             source: parseInt(chunks[1]),
                             target: parseInt(chunks[2]),
-                            type: chunks[3] || "unknown",
-                            info: chunks[4]
+                            id: chunks[3],
+                            type: chunks[4] || "unknown",
+                            info: chunks[5] || "<empty>"
                         })
                     }
                 }
@@ -159,7 +160,7 @@ function updateLinks() {
             line.setAttribute("stroke", link_lookup[data.type].color)
 
             line.innerHTML = `
-                <title>${data.type}</title>
+                <title>${data.id} - ${data.type}</title>
             `
         })
 }

@@ -1,13 +1,11 @@
 #pragma once
 
-#include <cstddef>
 #ifndef ARDUINO
 
-#    include <filesystem>
 #    include <fstream>
-#    include <vector>
 
-#    include "node.hpp"
+#    include "logging.hpp"
+#    include "network.hpp"
 #    include "std_provider/printf.hpp"
 #    include "std_provider/string.hpp"
 #    include "std_provider/unordered_map.hpp"
@@ -24,9 +22,9 @@ class Visualization {
    public:
     Visualization(const char* ip, int port, const char* site_path = VISUALIZATION_SITE_DIRECTORY);
 
-    void add_node(const string& name, LocalNode& node);
-    void remove_node(const LocalNode& node);
-    void remove_node(const string& name);
+    void add_network(const string& name, const Network& network);
+    void remove_network(const Network& network);
+    void remove_network(const string& name);
 
     void update();
 
@@ -40,9 +38,10 @@ class Visualization {
 
     string get_mime_type(const path& file_path);
 
-    unordered_map<string, LocalNode*> m_nodes;
+    unordered_map<string, const Network*> m_networks;
     SocketServerTransportRoute m_server;
 
+    size_t m_failed_reads = 0;
     const char* m_path;
 
     static constexpr unsigned s_message_buffer_size = 2048;

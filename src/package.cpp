@@ -1,9 +1,5 @@
 #include "package.hpp"
 
-#include <cstring>
-
-#include "network_types.hpp"
-
 namespace iac {
 
 constexpr size_t Package::s_pre_header_size;
@@ -80,13 +76,13 @@ bool Package::read_from(LocalTransportRoute* route) {
     route->write(&dummy, 1);
 #endif
 
-    if (route->m_wait_for_available_size > 0 && route->available() < route->m_wait_for_available_size)
+    if (route->meta().wait_for_available_size > 0 && route->available() < route->meta().wait_for_available_size)
         return false;
 
     if (route->available() < s_pre_header_size)
         return false;
 
-    route->m_wait_for_available_size = 0;
+    route->meta().wait_for_available_size = 0;
 
     start_byte_t start_byte = 0;
 
@@ -117,7 +113,7 @@ bool Package::read_from(LocalTransportRoute* route) {
     if (route->available() < package_size) {
         route->put_back(&start_byte, sizeof(start_byte_t));
         route->put_back(&package_size, sizeof(package_size_t));
-        route->m_wait_for_available_size = package_size + s_pre_header_size;
+        route->meta().wait_for_available_size = package_size + s_pre_header_size;
         return false;
     }
 

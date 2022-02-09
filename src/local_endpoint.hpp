@@ -16,28 +16,6 @@ namespace iac {
 
 IAC_MAKE_EXCEPTION(EndpointException);
 
-class Endpoint {
-    friend LocalNode;
-    friend LocalEndpoint;
-    friend LocalTransportRoute;
-    friend ManagedNetworkEntry<Endpoint>;
-
-   public:
-    ep_id_t id() const { return m_id; };
-    const string& name() const { return m_name; };
-    node_id_t node() const { return m_node; };
-    bool local() const { return m_local; };
-
-   private:
-    explicit Endpoint(ep_id_t id, string&& name = "", node_id_t node = unset_id) : m_id(id), m_name(name), m_node(node){};
-
-    ep_id_t m_id{unset_id};
-    bool m_local{false};
-
-    string m_name;
-    node_id_t m_node{unset_id};
-};
-
 class LocalEndpoint : public Endpoint {
     friend LocalNode;
 
@@ -82,7 +60,7 @@ class LocalEndpoint : public Endpoint {
         } ptr;
     } package_handler_t;
 
-    LocalEndpoint(ep_id_t id, string&& name) : Endpoint(id, move(name)) { m_local = true; };
+    LocalEndpoint(ep_id_t id, string&& name) : Endpoint(id, name) { set_local(true); };
     ~LocalEndpoint();
 
     LocalEndpoint(LocalEndpoint&) = delete;
