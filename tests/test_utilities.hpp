@@ -3,8 +3,40 @@
 #include "ftest/test_logging.hpp"
 #include "iac.hpp"
 
+#define TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node_name, ep_name, name, id) \
+    iac::LocalNode node_name{};                                            \
+    iac::LocalEndpoint ep_name{id, name};                                  \
+    node_name.add_local_endpoint(ep_name);
+
+#define TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr_name, node1_name, node2_name) \
+    iac::LoopbackTransportRoutePackage tr_name;                                 \
+    tr_name.connect(node1_name, node2_name)
+
 class TestUtilities {
+   private:
+    static bool all_nodes_connected() { return true; };
+    static void update_all_nodes(){};
+
    public:
+    template <typename F, typename... Args>
+    static void update_til_connected(F after_update, iac::LocalNode& node, Args&... nodes) {
+        while (!all_nodes_connected(node, nodes...)) {
+            update_all_nodes(node, nodes...);
+            after_update();
+        }
+    };
+
+    template <typename... Args>
+    static bool all_nodes_connected(const iac::LocalNode& node, const Args&... nodes) {
+        return node.all_routes_connected() && all_nodes_connected(nodes...);
+    }
+
+    template <typename... Args>
+    static void update_all_nodes(iac::LocalNode& node, Args&... nodes) {
+        node.update();
+        update_all_nodes(nodes...);
+    }
+
     static bool test_networks_equal(const std::vector<iac::LocalNode*>& nodes) {
         for (const auto* node : nodes) {
             for (const auto* compare_node : nodes) {

@@ -23,36 +23,21 @@ class TestNetworkVisualization {
     const std::string test_name = "network_visualization";
 
     TestLogging::test_result_t run() {
-        iac::LocalNode node1, node2, node3, node4;
-        iac::LocalEndpoint ep1{1, "ep1"}, ep2{2, "ep2"}, ep3{3, "ep3"}, ep4{4, "ep4"};
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node1, ep1, "ep1", 1);
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node2, ep2, "ep2", 2);
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node3, ep3, "ep3", 3);
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node4, ep4, "ep4", 4);
 
-        node1.add_local_endpoint(ep1);
-        node2.add_local_endpoint(ep2);
-        node3.add_local_endpoint(ep3);
-        node4.add_local_endpoint(ep4);
-
-        iac::LoopbackTransportRoutePackage tr1, tr2, tr3, tr4;
-        tr1.connect(node1, node2);
-        tr2.connect(node2, node3);
-        tr3.connect(node2, node4);
-        tr4.connect(node3, node4);
+        TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr1, node1, node2);
+        TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr2, node2, node3);
+        TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr3, node2, node4);
+        TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr4, node3, node4);
 
         TestLogging::test_printf("node1 network rep on startup %s", node1.network().network_representation().c_str());
 
-        while (!node1.all_routes_connected() || !node2.all_routes_connected() ||
-               !node3.all_routes_connected() || !node4.all_routes_connected()) {
-            node1.update();
-            node2.update();
-            node3.update();
-            node4.update();
-        }
+        TestUtilities::update_til_connected([] {}, node1, node2, node3, node4);
 
-        for (int i = 0; i < 1; ++i) {
-            node1.update();
-            node2.update();
-            node3.update();
-            node4.update();
-        }
+        for (int i = 0; i < 1; ++i) TestUtilities::update_all_nodes(node1, node2, node3, node4);
 
         bool networks_equal = TestUtilities::test_networks_equal({&node1, &node2, &node3, &node4});
 

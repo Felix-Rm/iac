@@ -7,6 +7,7 @@
 #include "ftest/test_logging.hpp"
 #include "iac.hpp"
 #include "std_provider/utility.hpp"
+#include "test_utilities.hpp"
 
 class TestDisconnectReconnect {
    public:
@@ -17,32 +18,22 @@ class TestDisconnectReconnect {
 
         int rec_pkg_count = 0;
 
-        iac::LocalNode node1, node2;
-        iac::LocalEndpoint ep1{1, "ep1"}, ep2{2, "ep2"};
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node1, ep1, "ep1", 1);
+        TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node2, ep2, "ep2", 2);
 
         ep1.add_package_handler(0, pkg_handler, &rec_pkg_count);
         ep2.add_package_handler(0, pkg_handler, &rec_pkg_count);
 
-        node1.add_local_endpoint(ep1);
-        node2.add_local_endpoint(ep2);
-
-        iac::LoopbackTransportRoutePackage tr;
-        tr.connect(node1, node2);
+        TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr1, node1, node2);
 
         try {
-            for (int i = 0; i < 5; ++i) {
-                while (!node1.endpoint_connected(2) || !node2.endpoint_connected(1)) {
-                    node1.update();
-                    std::this_thread::sleep_for(100ms);
-                    node2.update();
-                }
+            for (int i = 0; i < 2; ++i) {
+                TestUtilities::update_til_connected([] {}, node1, node2);
 
                 node1.network().print_network();
                 node2.network().print_network();
 
-                while (node1.endpoint_connected(2)) {
-                    node1.update();
-                }
+                while (node1.endpoint_connected(2)) { node1.update(); }
 
                 std::this_thread::sleep_for(200ms);
             }
