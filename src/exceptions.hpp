@@ -40,33 +40,38 @@ namespace iac {
         exit(EXIT_FAILURE)
 #endif
 
-#define IAC_ASSERT(x)                                                                                 \
-    if (!(x)) {                                                                                       \
-        iac_log(Logging::loglevels::error, "IAC_ASSERT FAILED @ %s:%d : %s", __FILE__, __LINE__, #x); \
-        IAC_HALT();                                                                                   \
+#define IAC_ASSERT(x)                                                                                                        \
+    if (!(x)) {                                                                                                              \
+        iac_log(Logging::loglevels::error, "IAC_ASSERT FAILED @ %s:%d in %s(): %s\n", __FILE__, __LINE__, __FUNCTION__, #x); \
+        IAC_HALT();                                                                                                          \
     }
 
-#define IAC_ASSERT_NOT_REACHED()                                                                                 \
-    iac_log(Logging::loglevels::error, "IAC_ASSERT_NOT_REACHED @ %s:%d : invalid state \n", __FILE__, __LINE__); \
-    IAC_HALT();
+#define IAC_ASSERT_NOT_REACHED()                                                                                                        \
+    {                                                                                                                                   \
+        iac_log(Logging::loglevels::error, "IAC_ASSERT_NOT_REACHED @ %s:%d in%s(): invalid state\n", __FILE__, __LINE__, __FUNCTION__); \
+        IAC_HALT();                                                                                                                     \
+    }
 
 #define IAC_HANDLE_EXCPETION(type, message) \
-    HandleExceptionImpl<type>(__FILE__, __LINE__, message)
+    HandleExceptionImpl<type>(__FILE__, __LINE__, __FUNCTION__, message)
 
 #define IAC_HANDLE_FATAL_EXCPETION(type, message) \
-    HandleFatalExceptionImpl<type>(__FILE__, __LINE__, message)
+    HandleFatalExceptionImpl<type>(__FILE__, __LINE__, __FUNCTION__, message)
 
 template <typename E>
-void HandleExceptionImpl(const char* type, int line, const char* message) {
-    iac_log(Logging::loglevels::error, "run into non-fatal @ %s:%d : %s\n", type, line, message);
+void HandleExceptionImpl(const char* type, int line, const char* function, const char* message) {
+    iac_log(Logging::loglevels::error, "run into non-fatal @ %s:%d in %s: %s\n", type, line, function, message);
 #ifndef IAC_DISABLE_EXCEPTIONS
     throw E(message);
 #endif
 }
 
 template <typename E>
-void HandleFatalExceptionImpl(const char* type, int line, const char* message) {
-    HandleExceptionImpl<E>(type, line, message);
+void HandleFatalExceptionImpl(const char* type, int line, const char* function, const char* message) {
+    iac_log(Logging::loglevels::error, "run into fatal @ %s:%d in %s: %s\n", type, line, function, message);
+#ifndef IAC_DISABLE_EXCEPTIONS
+    throw E(message);
+#endif
     IAC_HALT();
 }
 
