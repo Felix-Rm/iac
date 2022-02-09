@@ -3,8 +3,9 @@ enable_testing()
 
 project(iac)
 
-set(viz_site_dir "${CMAKE_INSTALL_PREFIX}/include/iac/network_visualization/site")
+set(viz_site_dir "${CMAKE_INSTALL_PREFIX}/include/iac/src/network_visualization/site/")
 message("VISUALIZATION_SITE_DIRECTORY=${viz_site_dir}")
+
 add_compile_definitions( VISUALIZATION_SITE_DIRECTORY="${viz_site_dir}")
 
 
@@ -35,7 +36,8 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/" #source directory
         DESTINATION "include/iac" #target directory
         FILES_MATCHING #install only matched files
         PATTERN "*.hpp" #select header files
-        PATTERN "site/*" PATTERN "build" EXCLUDE
+        PATTERN "**/site/*" 
+        PATTERN "build" EXCLUDE
         PATTERN ".*" EXCLUDE
         PATTERN "**CMakeFiles**" EXCLUDE)
 
