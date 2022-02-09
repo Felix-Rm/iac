@@ -32,16 +32,16 @@ class LocalNode : public Node {
    public:
     LocalNode(route_timings_t route_timings = {});
 
-    bool endpoint_connected(ep_id_t address);
-    bool endpoints_connected(const vector<ep_id_t>& addresses);
+    bool endpoint_connected(ep_id_t address) const;
+    bool endpoints_connected(const vector<ep_id_t>& addresses) const;
 
-    bool are_endpoints_connected(ep_id_t address) { return endpoint_connected(address); };
+    bool are_endpoints_connected(ep_id_t address) const { return endpoint_connected(address); };
     template <typename... Args>
-    bool are_endpoints_connected(ep_id_t address, Args... args) {
+    bool are_endpoints_connected(ep_id_t address, Args... args) const {
         return endpoint_connected(address) && are_endpoints_connected(args...);
     }
 
-    bool all_routes_connected();
+    bool all_routes_connected() const;
 
     bool update();
 

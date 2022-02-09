@@ -470,11 +470,11 @@ bool LocalNode::send_connect_package(LocalTransportRoute* route, bool relay) {
     return handle_package(package, route);
 }
 
-bool LocalNode::endpoint_connected(ep_id_t address) {
+bool LocalNode::endpoint_connected(ep_id_t address) const {
     return m_network.endpoint_registered(address);
 }
 
-bool LocalNode::endpoints_connected(const vector<ep_id_t>& addresses) {
+bool LocalNode::endpoints_connected(const vector<ep_id_t>& addresses) const {
     for (const auto& address : addresses)
         if (!endpoint_connected(address)) {
             iac_log(Logging::loglevels::verbose, "node %d connected test failed for %d\n", id(), address);
@@ -483,7 +483,7 @@ bool LocalNode::endpoints_connected(const vector<ep_id_t>& addresses) {
     return true;
 }
 
-bool LocalNode::all_routes_connected() {
+bool LocalNode::all_routes_connected() const {
     for (const auto& route : m_network.route_mapping()) {
         if (!route.second.element().local()) continue;
         const auto& ltr = (const LocalTransportRoute&)route.second.element();
