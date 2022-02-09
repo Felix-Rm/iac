@@ -28,18 +28,19 @@ class TestDisconnectReconnect {
 
         iac::LoopbackTransportRoutePackage tr;
         tr.connect(node1, node2);
+
         try {
             for (int i = 0; i < 5; ++i) {
-                while (!node1.is_endpoint_connected(2) || !node2.is_endpoint_connected(1)) {
+                while (!node1.endpoint_connected(2) || !node2.endpoint_connected(1)) {
                     node1.update();
                     std::this_thread::sleep_for(100ms);
                     node2.update();
                 }
 
-                node1.print_network();
-                node2.print_network();
+                node1.network().print_network();
+                node2.network().print_network();
 
-                while (node1.is_endpoint_connected(2)) {
+                while (node1.endpoint_connected(2)) {
                     node1.update();
                 }
 
@@ -49,8 +50,8 @@ class TestDisconnectReconnect {
             return {e.what()};
         }
 
-        TestLogging::test_printf("node1 %s", node1.network_representation(false).c_str());
-        TestLogging::test_printf("node2 %s", node2.network_representation(false).c_str());
+        TestLogging::test_printf("node1 %s", node1.network().network_representation(false).c_str());
+        TestLogging::test_printf("node2 %s", node2.network().network_representation(false).c_str());
 
         return {};
     };

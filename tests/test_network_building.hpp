@@ -2,6 +2,7 @@
 
 #include "ftest/test_logging.hpp"
 #include "iac.hpp"
+#include "test_utilities.hpp"
 
 class TestNetworkBuilding {
    public:

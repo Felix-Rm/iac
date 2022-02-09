@@ -11,8 +11,8 @@
 #include "test_network_visualization.hpp"
 #include "test_send_receive.hpp"
 
-int main() {
-    iac::Logging::set_loglevel(iac::Logging::loglevels::network);
+int main(int argc, char* argv[]) {
+    iac::Logging::set_loglevel(iac::Logging::loglevels::debug);
 
     TestLogging::start_suite("communication");
 
@@ -20,8 +20,10 @@ int main() {
     TestLogging::run<TestSendReceive>();
     TestLogging::run<TestNetworkBuilding>();
 
-    // TestLogging::start_suite("visualization");
-    // TestLogging::run<TestNetworkVisualization>();
+    if (argc >= 2 && strncmp(argv[0], "-h", 2) == 2) {
+        TestLogging::start_suite("visualization");
+        TestLogging::run<TestNetworkVisualization>();
+    }
 
     TestLogging::results();
 

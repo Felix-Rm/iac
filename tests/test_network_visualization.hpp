@@ -7,6 +7,7 @@
 #include "forward.hpp"
 #include "ftest/test_logging.hpp"
 #include "iac.hpp"
+#include "test_utilities.hpp"
 
 class TestNetworkVisualization {
    public:
@@ -36,12 +37,10 @@ class TestNetworkVisualization {
         tr3.connect(node2, node4);
         tr4.connect(node3, node4);
 
-        TestLogging::test_printf("node1 network rep on startup %s", node1.network_representation().c_str());
+        TestLogging::test_printf("node1 network rep on startup %s", node1.network().network_representation().c_str());
 
-        while (!node1.are_endpoints_connected(2, 3, 4) ||
-               !node2.are_endpoints_connected(1, 3, 4) ||
-               !node3.are_endpoints_connected(1, 2, 4) ||
-               !node4.are_endpoints_connected(1, 2, 3)) {
+        while (!node1.all_routes_connected() || !node2.all_routes_connected() ||
+               !node3.all_routes_connected() || !node4.all_routes_connected()) {
             node1.update();
             node2.update();
             node3.update();
@@ -55,11 +54,20 @@ class TestNetworkVisualization {
             node4.update();
         }
 
+        bool networks_equal = TestUtilities::test_networks_equal({&node1, &node2, &node3, &node4});
+
+        if (!networks_equal) {
+            TestLogging::test_printf("node1 %s", node1.network().network_representation(false).c_str());
+            TestLogging::test_printf("node2 %s", node2.network().network_representation(false).c_str());
+            TestLogging::test_printf("node3 %s", node3.network().network_representation(false).c_str());
+            TestLogging::test_printf("node4 %s", node4.network().network_representation(false).c_str());
+        }
+
         iac::Visualization viz{"127.0.0.1", 3000};
-        viz.add_node("node1", node1);
-        viz.add_node("node2", node2);
-        viz.add_node("node3", node3);
-        viz.add_node("node4", node4);
+        viz.add_network("node1", node1.network());
+        viz.add_network("node2", node2.network());
+        viz.add_network("node3", node3.network());
+        viz.add_network("node4", node4.network());
 
         bool run = true;
         auto t = std::thread(run_viz, &run, &viz);
@@ -76,56 +84,4 @@ class TestNetworkVisualization {
 
         return {};
     };
-
-   private:
-    bool test_networks_equal(std::vector<iac::LocalNode*> nodes) {
-        for (auto node : nodes) {
-            for (auto compare_node : nodes) {
-                if (node == compare_node) continue;
-
-                for (auto& entry : node->node_mapping()) {
-                    auto node_res = compare_node->node_mapping().find(entry.first);
-                    if (node_res == compare_node->node_mapping().end())
-                        return false;
-
-                    for (auto ep_id : entry.second.element().endpoints()) {
-                        auto ep_res = node_res->second.element().endpoints().find(ep_id);
-                        if (ep_res == node_res->second.element().endpoints().end())
-                            return false;
-                    }
-
-                    for (auto tr_id : entry.second.element().routes()) {
-                        auto tr_res = node_res->second.element().routes().find(tr_id);
-                        if (tr_res == node_res->second.element().routes().end())
-                            return false;
-                    }
-                }
-
-                for (auto& entry : node->ep_mapping()) {
-                    auto ep_res = compare_node->ep_mapping().find(entry.first);
-                    if (ep_res == compare_node->ep_mapping().end()) return false;
-                    if (entry.second.element().node() != ep_res->second.element().node())
-                        return false;
-                }
-
-                for (auto& entry : node->tr_mapping()) {
-                    auto tr_res = compare_node->tr_mapping().find(entry.first);
-                    if (tr_res == compare_node->tr_mapping().end()) return false;
-
-                    auto a_min_node = std::min(entry.second.element().node1(), entry.second.element().node2());
-                    auto a_max_node = std::max(entry.second.element().node1(), entry.second.element().node2());
-
-                    auto b_min_node = std::min(tr_res->second.element().node1(), tr_res->second.element().node2());
-                    auto b_max_node = std::max(tr_res->second.element().node1(), tr_res->second.element().node2());
-
-                    if (a_min_node != b_min_node)
-                        return false;
-                    if (a_max_node != b_max_node)
-                        return false;
-                }
-            }
-        }
-
-        return true;
-    }
 };

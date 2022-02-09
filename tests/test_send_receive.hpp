@@ -24,7 +24,7 @@ class TestSendReceive {
         iac::LoopbackTransportRoutePackage tr;
         tr.connect(node1, node2);
 
-        while (!node1.is_endpoint_connected(2) || !node2.is_endpoint_connected(1)) {
+        while (!node1.endpoint_connected(2) || !node2.endpoint_connected(1)) {
             node1.update();
             node2.update();
         }
@@ -47,14 +47,14 @@ class TestSendReceive {
             node2.update();
         }
 
-        TestLogging::test_printf("node1 %s", node1.network_representation(false).c_str());
-        TestLogging::test_printf("node2 %s", node2.network_representation(false).c_str());
+        TestLogging::test_printf("node1 %s", node1.network().network_representation(false).c_str());
+        TestLogging::test_printf("node2 %s", node2.network().network_representation(false).c_str());
 
         return {};
     };
 
    private:
-    static void pkg_handler(const iac::Package& pkg, iac::BufferReader&& reader, void* counter) {
+    static void pkg_handler(const iac::Package& pkg, iac::BufferReader&& /*unused*/, void* counter) {
         TestLogging::test_printf("received package from %d", pkg.from());
         (*(int*)counter)++;
     };
