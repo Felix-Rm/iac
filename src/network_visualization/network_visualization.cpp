@@ -14,6 +14,7 @@ Visualization::Visualization(const char* ip, int port, const char* site_path) : 
     m_mime_types[".js"] = "application/javascript";
     m_mime_types[".css"] = "text/css";
     m_mime_types[".txt"] = "text/plain";
+    m_mime_types[".json"] = "application/json";
 }
 
 void Visualization::add_network(const string& name, const Network& network) {
@@ -85,36 +86,69 @@ void Visualization::answer_request(const Visualization::path& path) {
     // printf("path: %s %s\n", full_path.c_str(), full_path.extension().c_str());
 
     if (path == "data") {
-        string data;
+        JSONObject data{};
 
         for (const auto& map_entry : m_networks) {
+            JSONObject network_data{};
             const auto& network = *map_entry.second;
 
             int node_id_counter = 0;
             unordered_map<iac::node_id_t, int> node_id_mapping;
 
-            data += ":$" + map_entry.first + "\n";
+            JSONArray network_node_list{};
 
             for (const auto& entry : network.node_mapping()) {
-                node_id_mapping[entry.first] = node_id_counter++;
-                data += "#$" + to_string(node_id_mapping[entry.first]);
+                auto node_id = node_id_counter++;
+                node_id_mapping[entry.first] = node_id;
+
+                JSONObject node_data{};
+
+                node_data.add("id", JSONValue{entry.second->id()});
+
+                JSONArray node_endpoint_data{};
 
                 for (const auto& endpoint_id : entry.second->endpoints()) {
                     const auto& ep = network.endpoint(endpoint_id);
-                    data += '$' + to_string(ep.id()) + '$' + ep.name();
+                    JSONObject endpoint_data{};
+
+                    endpoint_data.add("id", JSONValue{ep.id()});
+                    endpoint_data.add("name", JSONValue{ep.name()});
+
+                    node_endpoint_data.add(JSONValue{move(endpoint_data)});
                 }
-                data += '\n';
+
+                node_data.add("endpoints", JSONValue{move(node_endpoint_data)});
+                network_node_list.add(JSONValue{move(node_data)});
             }
+
+            network_data.add("nodes", JSONValue{move(network_node_list)});
+
+            JSONArray network_route_list{};
 
             for (const auto& entry : network.route_mapping()) {
-                data += "~$" + to_string(node_id_mapping[entry.second->node1()]) + '$' + to_string(node_id_mapping[entry.second->node2()]);
-                data += '$' + to_string(entry.second.element().id());
-                data += '$' + entry.second.element().typestring() + '$' + entry.second.element().infostring() + '\n';
+                const auto& tr = entry.second.element();
+                JSONObject route_data{};
+
+                route_data.add("id", JSONValue{tr.id()});
+                route_data.add("source", JSONValue{node_id_mapping[tr.node1()]});
+                route_data.add("target", JSONValue{node_id_mapping[tr.node2()]});
+                route_data.add("node1", JSONValue{tr.node1()});
+                route_data.add("node2", JSONValue{tr.node2()});
+                route_data.add("typestring", JSONValue{tr.typestring()});
+                route_data.add("infostring", JSONValue{tr.infostring()});
+
+                network_route_list.add(JSONValue{move(route_data)});
             }
+
+            network_data.add("routes", JSONValue{move(network_route_list)});
+
+            data.add(map_entry.first, JSONValue{move(network_data)});
         }
 
-        send_header("200 OK", data.length(), m_mime_types[".txt"].c_str());
-        m_server.write(data.c_str(), data.length());
+        string json = data.stringify();
+
+        send_header("200 OK", json.length(), m_mime_types[".json"].c_str());
+        m_server.write(json.c_str(), json.length());
 
     } else {
         std::ifstream input(full_path, std::ios::binary);

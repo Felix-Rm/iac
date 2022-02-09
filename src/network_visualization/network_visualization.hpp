@@ -4,6 +4,7 @@
 
 #    include <fstream>
 
+#    include "json_writer.hpp"
 #    include "logging.hpp"
 #    include "network.hpp"
 #    include "std_provider/printf.hpp"
