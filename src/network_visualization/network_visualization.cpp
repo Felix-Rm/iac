@@ -114,14 +114,14 @@ void Visualization::answer_request(const Visualization::path& path) {
                     endpoint_data.add("id", JSONValue{ep.id()});
                     endpoint_data.add("name", JSONValue{ep.name()});
 
-                    node_endpoint_data.add(JSONValue{move(endpoint_data)});
+                    node_endpoint_data.add(JSONValue{iac::move(endpoint_data)});
                 }
 
-                node_data.add("endpoints", JSONValue{move(node_endpoint_data)});
-                network_node_list.add(JSONValue{move(node_data)});
+                node_data.add("endpoints", JSONValue{iac::move(node_endpoint_data)});
+                network_node_list.add(JSONValue{iac::move(node_data)});
             }
 
-            network_data.add("nodes", JSONValue{move(network_node_list)});
+            network_data.add("nodes", JSONValue{iac::move(network_node_list)});
 
             JSONArray network_route_list{};
 
@@ -137,12 +137,12 @@ void Visualization::answer_request(const Visualization::path& path) {
                 route_data.add("typestring", JSONValue{tr.typestring()});
                 route_data.add("infostring", JSONValue{tr.infostring()});
 
-                network_route_list.add(JSONValue{move(route_data)});
+                network_route_list.add(JSONValue{iac::move(route_data)});
             }
 
-            network_data.add("routes", JSONValue{move(network_route_list)});
+            network_data.add("routes", JSONValue{iac::move(network_route_list)});
 
-            data.add(map_entry.first, JSONValue{move(network_data)});
+            data.add(map_entry.first, JSONValue{iac::move(network_data)});
         }
 
         string json = data.stringify();

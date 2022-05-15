@@ -4,25 +4,25 @@ namespace iac {
 
 JSONValue::JSONValue(JSONObject&& object) : m_value_type(value_types::OBJECT) {
     auto* obj_ptr = new JSONObject();
-    *obj_ptr = move(object);
+    *obj_ptr = iac::move(object);
     m_value.as_object = obj_ptr;
 };
 
 JSONValue::JSONValue(JSONArray&& array) : m_value_type(value_types::ARRAY) {
     auto* arr_ptr = new JSONArray();
-    *arr_ptr = move(array);
+    *arr_ptr = iac::move(array);
     m_value.as_array = arr_ptr;
 };
 
 JSONValue::JSONValue(string&& str) : m_value_type(value_types::STRING) {
     auto* str_ptr = new string();
-    *str_ptr = move(str);
+    *str_ptr = iac::move(str);
     m_value.as_string = str_ptr;
 };
 
 JSONValue::JSONValue(string str) : m_value_type(value_types::STRING) {
     auto* str_ptr = new string();
-    *str_ptr = move(str);
+    *str_ptr = iac::move(str);
     m_value.as_string = str_ptr;
 };
 

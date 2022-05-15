@@ -12,7 +12,7 @@ bool Network::add_route(ManagedNetworkEntry<TransportRoute>&& route) {
 
     auto tr_id = route.element().id();
     auto nodes = route.element().nodes();
-    m_tr_mapping[tr_id] = move(route);
+    m_tr_mapping[tr_id] = iac::move(route);
 
     auto add_if_not_unset = [&](tr_id_t tr_id, node_id_t node_id) {
         if (node_id != unset_id) {
@@ -88,7 +88,7 @@ bool Network::add_endpoint(ManagedNetworkEntry<Endpoint>&& ep) {
         mutable_node(node_id).add_endpoint(ep_id);
     }
 
-    m_ep_mapping[ep_id] = move(ep);
+    m_ep_mapping[ep_id] = iac::move(ep);
 
     IAC_ASSERT(validate_network());
 
@@ -132,7 +132,7 @@ bool Network::add_node(ManagedNetworkEntry<Node>&& node) {
         return false;
     }
 
-    m_node_mapping[node.element().id()] = move(node);
+    m_node_mapping[node.element().id()] = iac::move(node);
     set_modified();
 
     IAC_ASSERT(validate_network());
