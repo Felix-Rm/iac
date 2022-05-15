@@ -1,4 +1,4 @@
-#ifndef ARDUINO
+#ifndef IAC_DISABLE_VISUALIZATION
 
 #    include "network_visualization/network_visualization.hpp"
 
