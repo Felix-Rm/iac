@@ -8,9 +8,7 @@
 
 class TestSendReceive {
    public:
-    const std::string test_name = "send/receive";
-
-    TestLogging::test_result_t run() {
+    static TestLogging::test_result_t run() {
         int rec_pkg_count = 0;
 
         TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node1, ep1, "ep1", 1);

@@ -11,9 +11,7 @@
 
 class TestDisconnectReconnect {
    public:
-    const std::string test_name = "disconnect/reconnect";
-
-    TestLogging::test_result_t run() {
+    static TestLogging::test_result_t run() {
         using namespace std::chrono_literals;
 
         int rec_pkg_count = 0;

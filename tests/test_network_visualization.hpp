@@ -19,9 +19,7 @@ class TestNetworkVisualization {
         }
     }
 
-    const std::string test_name = "network_visualization";
-
-    TestLogging::test_result_t run() {
+    static TestLogging::test_result_t run() {
         TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node1, ep1, "ep1", 1);
         TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node2, ep2, "ep2", 2);
         TEST_UTILS_CREATE_NODE_WITH_ENDPOINT(node3, ep3, "ep3", 3);

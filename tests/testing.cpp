@@ -11,16 +11,14 @@ int main(int argc, char* argv[]) {
 
     TestLogging::start_suite("communication");
 
-    TestLogging::run<TestDisconnectReconnect>();
-    TestLogging::run<TestSendReceive>();
-    TestLogging::run<TestNetworkBuilding>();
+    TestLogging::run("disconnect-reconnect", TestDisconnectReconnect::run);
+    TestLogging::run("send-receive", TestSendReceive::run);
+    TestLogging::run("network-building", TestNetworkBuilding::run);
 
     if (argc >= 2 && strncmp(argv[1], "-h", 2) == 0) {
         TestLogging::start_suite("visualization");
-        TestLogging::run<TestNetworkVisualization>();
+        TestLogging::run("visualization", TestNetworkVisualization::run);
     }
 
-    TestLogging::results();
-
-    return 0;
+    return TestLogging::results();
 }
