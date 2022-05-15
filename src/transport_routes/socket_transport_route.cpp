@@ -1,11 +1,11 @@
-#include <cstddef>
 #ifndef ARDUINO
 
 #    include "socket_transport_route.hpp"
 
 namespace iac {
 
-SocketTransportRoute::SocketTransportRoute(const char* ip, int port) : m_ip(ip), m_port(port) {
+SocketTransportRoute::SocketTransportRoute(const char* ip, int port)
+    : m_ip(ip), m_port(port) {
     signal(SIGPIPE, SIG_IGN);
 
     if (ip != nullptr)
@@ -62,7 +62,8 @@ size_t SocketTransportRoute::available() {
     return count + available_put_back_queue();
 }
 
-SocketClientTransportRoute::SocketClientTransportRoute(const char* ip, int port) : SocketTransportRoute(ip, port) {
+SocketClientTransportRoute::SocketClientTransportRoute(const char* ip, int port)
+    : SocketTransportRoute(ip, port) {
     m_address.sin_family = AF_INET;
     m_address.sin_addr.s_addr = m_addr;
     m_address.sin_port = htons(m_port);
@@ -169,7 +170,8 @@ bool SocketClientTransportRoute::close() {
     return close_result;
 }
 
-SocketServerTransportRoute::SocketServerTransportRoute(const char* ip, int port) : SocketTransportRoute(ip, port) {
+SocketServerTransportRoute::SocketServerTransportRoute(const char* ip, int port)
+    : SocketTransportRoute(ip, port) {
     if ((m_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         iac_log(Logging::loglevels::network, "socket failed\n");
 
@@ -218,5 +220,7 @@ bool SocketServerTransportRoute::close() {
     clear_put_back_queue();
     return close_result;
 }
+
 }  // namespace iac
+
 #endif

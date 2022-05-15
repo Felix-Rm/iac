@@ -23,7 +23,8 @@ class TestNetworkBuilding {
 
         TestUtilities::update_til_connected([] {}, node1, node2, node3, node4);
 
-        for (int i = 0; i < 1; ++i) TestUtilities::update_all_nodes(node1, node2, node3, node4);
+        for (int i = 0; i < 5; ++i)
+            TestUtilities::update_all_nodes(node1, node2, node3, node4);
 
         bool networks_equal = TestUtilities::test_networks_equal({&node1, &node2, &node3, &node4});
 

@@ -4,7 +4,8 @@
 
 namespace iac {
 
-Visualization::Visualization(const char* ip, int port, const char* site_path) : m_server(ip, port), m_path(site_path) {
+Visualization::Visualization(const char* ip, int port, const char* site_path)
+    : m_server(ip, port), m_path(site_path) {
     if (!m_server) {
         iac_log(Logging::loglevels::debug, "error creating webserver\n");
     }
@@ -80,6 +81,7 @@ Visualization::path Visualization::parse_request() {
 
     return {};
 }
+
 void Visualization::answer_request(const Visualization::path& path) {
     auto full_path = m_root_path + path;
 
@@ -188,5 +190,7 @@ void Visualization::send_header(const char* status, size_t size, const char* mim
 
     m_server.write(buffer, written);
 }
+
 }  // namespace iac
+
 #endif

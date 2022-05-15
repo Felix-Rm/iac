@@ -27,13 +27,15 @@ class TestSendReceive {
             return {"failed to send pkg to ep2\n"};
         }
 
-        while (rec_pkg_count < 1) TestUtilities::update_all_nodes(node1, node2);
+        while (rec_pkg_count < 1)
+            TestUtilities::update_all_nodes(node1, node2);
 
         if (!node2.send(ep2, ep1.id(), 0, nullptr, 0)) {
             return {"failed to send pkg to ep1\n"};
         }
 
-        while (rec_pkg_count < 2) TestUtilities::update_all_nodes(node1, node2);
+        while (rec_pkg_count < 2)
+            TestUtilities::update_all_nodes(node1, node2);
 
         TestLogging::test_printf("node1 %s", node1.network().network_representation(false).c_str());
         TestLogging::test_printf("node2 %s", node2.network().network_representation(false).c_str());

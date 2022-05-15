@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstdint>
-
 #include "exceptions.hpp"
 #include "forward.hpp"
 #include "logging.hpp"
 #include "std_provider/limits.hpp"
 #include "std_provider/printf.hpp"
+#include "std_provider/string.hpp"
 #include "std_provider/unordered_map.hpp"
 #include "std_provider/unordered_set.hpp"
 #include "std_provider/utility.hpp"
@@ -34,7 +33,7 @@ enum reserved_endpoint_addresses {
 
 constexpr uint8_t unset_id = reserved_endpoint_addresses::IAC;
 
-typedef struct {
+typedef struct route_timings {
     uint16_t heartbeat_interval_ms = 0;
     uint16_t assume_dead_after_ms = 0;
 } route_timings_t;
@@ -193,34 +192,83 @@ class Node {
     friend LocalNode;
 
    public:
+    virtual ~Node() = default;
+
     typedef unordered_set<ep_id_t> endpoint_list_t;
     typedef unordered_set<tr_id_t> route_list_t;
     typedef unordered_map<tr_id_t, uint8_t> local_route_list_t;
 
-    [[nodiscard]] node_id_t id() const { return m_id; };
-    [[nodiscard]] bool local() const { return m_local; };
-    [[nodiscard]] const auto& endpoints() const { return m_endpoints; }
-    [[nodiscard]] const auto& routes() const { return m_routes; }
-    [[nodiscard]] const auto& local_routes() const { return m_local_routes; }
+    [[nodiscard]] node_id_t id() const {
+        return m_id;
+    };
+
+    [[nodiscard]] bool local() const {
+        return m_local;
+    };
+
+    [[nodiscard]] const auto& endpoints() const {
+        return m_endpoints;
+    }
+
+    [[nodiscard]] const auto& routes() const {
+        return m_routes;
+    }
+
+    [[nodiscard]] const auto& local_routes() const {
+        return m_local_routes;
+    }
 
    protected:
-    explicit Node(node_id_t id) : m_id(id){};
+    explicit Node(node_id_t id)
+        : m_id(id){};
 
-    void set_id(ep_id_t tr_id) { m_id = tr_id; };
-    void set_local(bool local) { m_local = local; };
+    void set_id(ep_id_t tr_id) {
+        m_id = tr_id;
+    };
 
-    void add_endpoint(ep_id_t ep_id) { m_endpoints.insert(ep_id); }
-    void add_route(tr_id_t tr_id) { m_routes.insert(tr_id); }
-    void add_local_route(tr_id_t tr_id, uint8_t hops) { m_local_routes.insert({tr_id, hops}); }
-    void add_local_route(pair<tr_id_t, uint8_t> entry) { m_local_routes.insert(entry); }
+    void set_local(bool local) {
+        m_local = local;
+    };
 
-    void remove_endpoint(ep_id_t ep_id) { m_endpoints.erase(ep_id); }
-    void remove_route(tr_id_t tr_id) { m_routes.erase(tr_id); }
-    void remove_local_route(tr_id_t tr_id) { m_local_routes.erase(tr_id); }
+    void add_endpoint(ep_id_t ep_id) {
+        m_endpoints.insert(ep_id);
+    }
 
-    void remove_endpoint(const endpoint_list_t::const_iterator& ep_it) { m_endpoints.erase(ep_it); }
-    void remove_route(const route_list_t::const_iterator& tr_it) { m_routes.erase(tr_it); }
-    void remove_local_route(const local_route_list_t::const_iterator& tr_it) { m_local_routes.erase(tr_it); }
+    void add_route(tr_id_t tr_id) {
+        m_routes.insert(tr_id);
+    }
+
+    void add_local_route(tr_id_t tr_id, uint8_t hops) {
+        m_local_routes.insert({tr_id, hops});
+    }
+
+    void add_local_route(pair<tr_id_t, uint8_t> entry) {
+        m_local_routes.insert(entry);
+    }
+
+    void remove_endpoint(ep_id_t ep_id) {
+        m_endpoints.erase(ep_id);
+    }
+
+    void remove_route(tr_id_t tr_id) {
+        m_routes.erase(tr_id);
+    }
+
+    void remove_local_route(tr_id_t tr_id) {
+        m_local_routes.erase(tr_id);
+    }
+
+    void remove_endpoint(const endpoint_list_t::const_iterator& ep_it) {
+        m_endpoints.erase(ep_it);
+    }
+
+    void remove_route(const route_list_t::const_iterator& tr_it) {
+        m_routes.erase(tr_it);
+    }
+
+    void remove_local_route(const local_route_list_t::const_iterator& tr_it) {
+        m_local_routes.erase(tr_it);
+    }
 
    private:
     node_id_t m_id{unset_id};
@@ -236,20 +284,48 @@ class Endpoint {
     friend LocalNode;
 
    public:
-    [[nodiscard]] ep_id_t id() const { return m_id; };
-    [[nodiscard]] const string& name() const { return m_name; };
-    [[nodiscard]] node_id_t node() const { return m_node; };
-    [[nodiscard]] bool local() const { return m_local; };
+    [[nodiscard]] ep_id_t id() const {
+        return m_id;
+    };
+
+    [[nodiscard]] const string& name() const {
+        return m_name;
+    };
+
+    [[nodiscard]] node_id_t node() const {
+        return m_node;
+    };
+
+    [[nodiscard]] bool local() const {
+        return m_local;
+    };
 
    protected:
-    explicit Endpoint(ep_id_t id, string name, node_id_t node = unset_id) : m_id(id), m_name(move(name)), m_node(node){};
-    explicit Endpoint(ep_id_t id, string&& name = "", node_id_t node = unset_id) : m_id(id), m_name(move(name)), m_node(node){};
+    explicit Endpoint(ep_id_t id, string name, node_id_t node = unset_id)
+        : m_id(id), m_name(iac::move(name)), m_node(node){};
 
-    void set_id(ep_id_t tr_id) { m_id = tr_id; };
-    void set_local(bool local) { m_local = local; };
-    void set_name(string& name) { m_name = name; };
-    void set_name(string&& name) { m_name = move(name); };
-    void set_node(node_id_t node_id) { m_node = node_id; };
+    explicit Endpoint(ep_id_t id, string&& name = "", node_id_t node = unset_id)
+        : m_id(id), m_name(iac::move(name)), m_node(node){};
+
+    void set_id(ep_id_t tr_id) {
+        m_id = tr_id;
+    };
+
+    void set_local(bool local) {
+        m_local = local;
+    };
+
+    void set_name(string& name) {
+        m_name = name;
+    };
+
+    void set_name(string&& name) {
+        m_name = iac::move(name);
+    };
+
+    void set_node(node_id_t node_id) {
+        m_node = node_id;
+    };
 
    private:
     ep_id_t m_id{unset_id};
@@ -264,15 +340,33 @@ class TransportRoute {
     friend LocalNode;
 
    public:
-    [[nodiscard]] const string& typestring() const { return m_typestring; };
-    [[nodiscard]] const string& infostring() const { return m_infostring; };
+    [[nodiscard]] const string& typestring() const {
+        return m_typestring;
+    };
 
-    [[nodiscard]] tr_id_t id() const { return m_id; };
-    [[nodiscard]] bool local() const { return m_local; };
+    [[nodiscard]] const string& infostring() const {
+        return m_infostring;
+    };
 
-    [[nodiscard]] const auto& nodes() const { return m_nodes; };
-    [[nodiscard]] const auto& node1() const { return m_nodes.first; };
-    [[nodiscard]] const auto& node2() const { return m_nodes.second; };
+    [[nodiscard]] tr_id_t id() const {
+        return m_id;
+    };
+
+    [[nodiscard]] bool local() const {
+        return m_local;
+    };
+
+    [[nodiscard]] const auto& nodes() const {
+        return m_nodes;
+    };
+
+    [[nodiscard]] const auto& node1() const {
+        return m_nodes.first;
+    };
+
+    [[nodiscard]] const auto& node2() const {
+        return m_nodes.second;
+    };
 
     void printInfo() const {
         iac_log(Logging::loglevels::network, "[%s]", infostring().c_str());
@@ -284,13 +378,25 @@ class TransportRoute {
 
    protected:
     TransportRoute() = default;
-    TransportRoute(id_t id, pair<node_id_t, node_id_t>&& nodes) : m_id(id), m_nodes(move(nodes)){};
 
-    void set_id(tr_id_t tr_id) { m_id = tr_id; };
-    void set_local(bool local) { m_local = local; };
+    TransportRoute(id_t id, pair<node_id_t, node_id_t>&& nodes)
+        : m_id(id), m_nodes(iac::move(nodes)){};
 
-    void set_node1(node_id_t node_id) { m_nodes.first = node_id; };
-    void set_node2(node_id_t node_id) { m_nodes.second = node_id; };
+    void set_id(tr_id_t tr_id) {
+        m_id = tr_id;
+    };
+
+    void set_local(bool local) {
+        m_local = local;
+    };
+
+    void set_node1(node_id_t node_id) {
+        m_nodes.first = node_id;
+    };
+
+    void set_node2(node_id_t node_id) {
+        m_nodes.second = node_id;
+    };
 
    private:
     tr_id_t m_id = unset_id;

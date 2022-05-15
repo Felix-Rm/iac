@@ -20,17 +20,33 @@ class Network {
     typedef unordered_map<tr_id_t, ManagedNetworkEntry<TransportRoute>> tr_mapping_t;
     typedef unordered_map<node_id_t, ManagedNetworkEntry<Node>> node_mapping_t;
 
-    const auto& node_mapping() const { return m_node_mapping; };
-    const auto& endpoint_mapping() const { return m_ep_mapping; };
-    const auto& route_mapping() const { return m_tr_mapping; };
+    const auto& node_mapping() const {
+        return m_node_mapping;
+    };
+
+    const auto& endpoint_mapping() const {
+        return m_ep_mapping;
+    };
+
+    const auto& route_mapping() const {
+        return m_tr_mapping;
+    };
 
     [[nodiscard]] bool node_registered(node_id_t node_id) const;
     [[nodiscard]] bool endpoint_registered(ep_id_t ep_id) const;
     [[nodiscard]] bool route_registered(tr_id_t tr_id) const;
 
-    [[nodiscard]] const Node& node(node_id_t node_id) const { return m_node_mapping.at(node_id).element(); };
-    [[nodiscard]] const Endpoint& endpoint(ep_id_t ep_id) const { return m_ep_mapping.at(ep_id).element(); };
-    [[nodiscard]] const TransportRoute& route(tr_id_t tr_id) const { return m_tr_mapping.at(tr_id).element(); };
+    [[nodiscard]] const Node& node(node_id_t node_id) const {
+        return m_node_mapping.at(node_id).element();
+    };
+
+    [[nodiscard]] const Endpoint& endpoint(ep_id_t ep_id) const {
+        return m_ep_mapping.at(ep_id).element();
+    };
+
+    [[nodiscard]] const TransportRoute& route(tr_id_t tr_id) const {
+        return m_tr_mapping.at(tr_id).element();
+    };
 
     void print_endpoint_list() const;
     void print_network() const;
@@ -91,11 +107,18 @@ class Network {
 
     bool validate_network() const;
 
-    bool is_modified() const { return m_mapping_changed; };
-    void reset_modified() { m_mapping_changed = false; };
+    bool is_modified() const {
+        return m_mapping_changed;
+    };
+
+    void reset_modified() {
+        m_mapping_changed = false;
+    };
 
    private:
-    void set_modified() { m_mapping_changed = true; };
+    void set_modified() {
+        m_mapping_changed = true;
+    };
 
     ep_mapping_t m_ep_mapping;
     tr_mapping_t m_tr_mapping;

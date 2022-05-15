@@ -14,7 +14,10 @@
 
 class TestUtilities {
    private:
-    static bool all_nodes_connected() { return true; };
+    static bool all_nodes_connected() {
+        return true;
+    };
+
     static void update_all_nodes(){};
 
    public:

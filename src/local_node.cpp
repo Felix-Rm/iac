@@ -5,7 +5,8 @@
 
 namespace iac {
 
-LocalNode::LocalNode(route_timings_t timings) : Node(unset_id), m_default_route_timings(timings) {
+LocalNode::LocalNode(route_timings_t timings)
+    : Node(unset_id), m_default_route_timings(timings) {
     set_local(true);
 
     if (m_default_route_timings.heartbeat_interval_ms < s_min_heartbeat_interval_ms)

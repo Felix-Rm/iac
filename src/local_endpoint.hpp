@@ -60,7 +60,11 @@ class LocalEndpoint : public Endpoint {
         } ptr;
     } package_handler_t;
 
-    LocalEndpoint(ep_id_t id, string&& name) : Endpoint(id, name) { set_local(true); };
+    LocalEndpoint(ep_id_t id, string&& name)
+        : Endpoint(id, name) {
+        set_local(true);
+    };
+
     ~LocalEndpoint();
 
     LocalEndpoint(LocalEndpoint&) = delete;

@@ -1,21 +1,8 @@
 let last_data = ""
 let resized = false;
 
-
-
 let drag_subject = undefined
 let drag_network = undefined
-
-
-// function objectsAreSame(x, y) {
-//     if (x.length != y.length) return false;
-
-//     for (let i = 0; i < x.length; i++) {
-//         for (let prop in x[i])
-//             if (x[i][prop] != y[i][prop]) return false
-//     }
-//     return true;
-// }
 
 let networks = {}
 

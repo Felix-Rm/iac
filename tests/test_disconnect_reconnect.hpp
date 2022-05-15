@@ -33,7 +33,9 @@ class TestDisconnectReconnect {
                 node1.network().print_network();
                 node2.network().print_network();
 
-                while (node1.endpoint_connected(2)) { node1.update(); }
+                while (node1.endpoint_connected(2)) {
+                    node1.update();
+                }
 
                 std::this_thread::sleep_for(200ms);
             }

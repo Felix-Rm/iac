@@ -35,7 +35,10 @@ class LocalNode : public Node {
     bool endpoint_connected(ep_id_t address) const;
     bool endpoints_connected(const vector<ep_id_t>& addresses) const;
 
-    bool are_endpoints_connected(ep_id_t address) const { return endpoint_connected(address); };
+    bool are_endpoints_connected(ep_id_t address) const {
+        return endpoint_connected(address);
+    };
+
     template <typename... Args>
     bool are_endpoints_connected(ep_id_t address, Args... args) const {
         return endpoint_connected(address) && are_endpoints_connected(args...);
@@ -56,7 +59,9 @@ class LocalNode : public Node {
     bool send(ep_id_t from, ep_id_t to, package_type_t type, const BufferWriter& buffer, Package::buffer_management_t buffer_management = Package::buffer_management::IN_PLACE);
     bool send(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, Package::buffer_management_t buffer_management = Package::buffer_management::IN_PLACE);
 
-    const Network& network() const { return m_network; };
+    const Network& network() const {
+        return m_network;
+    };
 
    private:
     static constexpr uint16_t s_min_heartbeat_interval_ms = 100;

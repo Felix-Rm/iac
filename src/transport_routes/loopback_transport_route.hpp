@@ -33,8 +33,13 @@ class LoopbackTransportRoute : public LocalTransportRoute {
 
 class LoopbackTransportRoutePackage {
    public:
-    LoopbackTransportRoute& end1() { return loopback_1; };
-    LoopbackTransportRoute& end2() { return loopback_2; };
+    LoopbackTransportRoute& end1() {
+        return loopback_1;
+    };
+
+    LoopbackTransportRoute& end2() {
+        return loopback_2;
+    };
 
     bool connect(LocalNode& a, LocalNode& b) {
         return a.add_local_transport_route(end1()) && b.add_local_transport_route(end2());

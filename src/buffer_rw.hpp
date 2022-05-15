@@ -17,7 +17,9 @@ IAC_MAKE_EXCEPTION(BufferReaderOutOfBounds);
 
 class BufferReader {
    public:
-    BufferReader(const uint8_t* buffer, size_t buffer_length) : m_buffer(buffer), m_buffer_len(buffer_length), m_cursor((uint8_t*)buffer){};
+    BufferReader(const uint8_t* buffer, size_t buffer_length)
+        : m_buffer(buffer), m_buffer_len(buffer_length), m_cursor((uint8_t*)buffer){};
+
     ~BufferReader() = default;
 
     const uint8_t* buffer() const {
@@ -72,15 +74,21 @@ class BufferWriter {
         MGMT_INTERNAL_CONSERVATIVE
     } buffer_management_t;
 
-    BufferWriter(buffer_management_t management_type = buffer_management::MGMT_INTERNAL) : m_management_type(management_type) {
+    BufferWriter(buffer_management_t management_type = buffer_management::MGMT_INTERNAL)
+        : m_management_type(management_type) {
         ensure_space(min_grow_size);
     };
 
-    BufferWriter(uint8_t* buffer, size_t buffer_length) : m_allocated_buffer_size(buffer_length), m_buffer(buffer), m_cursor((uint8_t*)buffer){};
+    BufferWriter(uint8_t* buffer, size_t buffer_length)
+        : m_allocated_buffer_size(buffer_length), m_buffer(buffer), m_cursor((uint8_t*)buffer){};
+
     ~BufferWriter();
 
     BufferWriter& str(const char* str);
-    BufferWriter& str(const string& string) { return str(string.c_str()); };
+
+    BufferWriter& str(const string& string) {
+        return str(string.c_str());
+    };
 
     template <typename T>
     BufferWriter& num(T num) {
@@ -90,7 +98,9 @@ class BufferWriter {
         return *this;
     }
 
-    BufferWriter& boolean(bool b) { return num((uint8_t)b); };
+    BufferWriter& boolean(bool b) {
+        return num((uint8_t)b);
+    };
 
     const uint8_t* buffer() const {
         return m_buffer;

@@ -30,6 +30,7 @@ class Package {
     Package(const Package& other) {
         copy_from(other);
     }
+
     Package(Package&& other) {
         move_from(other);
     }
@@ -44,19 +45,49 @@ class Package {
         return *this;
     }
 
-    ep_id_t from() const { return m_from; };
-    ep_id_t to() const { return m_to; };
-    package_type_t type() const { return m_type; };
-    const uint8_t* payload() const { return m_payload; };
-    package_size_t payload_size() const { return m_payload_size; };
+    ep_id_t from() const {
+        return m_from;
+    };
 
-    ep_id_t& from() { return m_from; };
-    ep_id_t& to() { return m_to; };
-    package_type_t& type() { return m_type; };
-    uint8_t*& payload() { return m_payload; };
-    package_size_t& payload_size() { return m_payload_size; };
+    ep_id_t to() const {
+        return m_to;
+    };
 
-    LocalTransportRoute* route() const { return m_over_route; };
+    package_type_t type() const {
+        return m_type;
+    };
+
+    const uint8_t* payload() const {
+        return m_payload;
+    };
+
+    package_size_t payload_size() const {
+        return m_payload_size;
+    };
+
+    ep_id_t& from() {
+        return m_from;
+    };
+
+    ep_id_t& to() {
+        return m_to;
+    };
+
+    package_type_t& type() {
+        return m_type;
+    };
+
+    uint8_t*& payload() {
+        return m_payload;
+    };
+
+    package_size_t& payload_size() {
+        return m_payload_size;
+    };
+
+    LocalTransportRoute* route() const {
+        return m_over_route;
+    };
 
     void print() const;
 
