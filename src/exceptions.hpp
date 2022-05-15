@@ -1,11 +1,12 @@
 #pragma once
 
-#ifndef IAC_DISABLE_EXCEPTIONS
-#    include <exception>
+#ifdef IAC_DISABLE_STD
+#    define IAC_DISABLE_EXCEPTIONS
 #endif
 
-#ifndef ARDUINO
+#ifndef IAC_DISABLE_EXCEPTIONS
 #    include <cstdlib>
+#    include <exception>
 #endif
 
 #include "logging.hpp"
@@ -17,27 +18,26 @@ namespace iac {
         class Name {};
 
 #else
-#    define IAC_MAKE_EXCEPTION(Name)                                   \
-        class Name : public std::exception {                           \
-           public:                                                     \
-            explicit Name(string&& reason) : m_reason(move(reason)){}; \
-                                                                       \
-            const char* what() const noexcept override {               \
-                return m_reason.c_str();                               \
-            }                                                          \
-                                                                       \
-           private:                                                    \
-            string m_reason;                                           \
+#    define IAC_MAKE_EXCEPTION(Name)                                        \
+        class Name : public std::exception {                                \
+           public:                                                          \
+            explicit Name(string&& reason) : m_reason(iac::move(reason)){}; \
+                                                                            \
+            const char* what() const noexcept override {                    \
+                return m_reason.c_str();                                    \
+            }                                                               \
+                                                                            \
+           private:                                                         \
+            string m_reason;                                                \
         };
 
 #endif
 
-#ifdef ARDUINO
+#ifdef IAC_DISABLE_STD
 #    define IAC_HALT() \
         while (true) {}
 #else
-#    define IAC_HALT() \
-        exit(EXIT_FAILURE)
+#    define IAC_HALT() exit(EXIT_FAILURE)
 #endif
 
 #define IAC_ASSERT(x)                                                                                                        \
