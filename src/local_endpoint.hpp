@@ -8,7 +8,7 @@
 #include "std_provider/unordered_map.hpp"
 #include "std_provider/utility.hpp"
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
 #    include <functional>
 #endif
 
@@ -26,7 +26,7 @@ class LocalEndpoint : public Endpoint {
         BY_READER_WITH_DATA,
         BY_BUFFER_WITH_DATA,
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
         BY_FN_READER,
         BY_FN_BUFFER
 #endif
@@ -39,7 +39,7 @@ class LocalEndpoint : public Endpoint {
     typedef void (*package_handler_by_buffer_with_data_t)(const Package& pkg, void* data);
     typedef void (*package_handler_by_reader_with_data_t)(const Package& pkg, BufferReader&& reader, void* data);
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
     typedef std::function<void(const Package& pkg)> package_handler_fn_by_buffer_t;
     typedef std::function<void(const Package& pkg, BufferReader&& reader)> package_handler_fn_by_reader_t;
 #endif
@@ -53,7 +53,7 @@ class LocalEndpoint : public Endpoint {
             package_handler_by_reader_with_data_t* by_reader_with_data;
             package_handler_by_buffer_with_data_t* by_buffer_with_data;
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
             package_handler_fn_by_reader_t* by_fn_reader;
             package_handler_fn_by_buffer_t* by_fn_buffer;
 #endif
@@ -73,7 +73,7 @@ class LocalEndpoint : public Endpoint {
     void add_package_handler(package_type_t for_type, package_handler_by_reader_with_data_t handler, void* data);
     void add_package_handler(package_type_t for_type, package_handler_by_buffer_with_data_t handler, void* data);
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
     void add_package_handler(package_type_t for_type, package_handler_fn_by_reader_t handler);
     void add_package_handler(package_type_t for_type, package_handler_fn_by_buffer_t handler);
 #endif

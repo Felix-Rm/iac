@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef IAC_DISABLE_STD
 #    include "lw_std/queue.hpp"
+#ifdef IAC_USE_LWSTD
 namespace iac {
 template <typename T>
 using queue = lw_std::queue<T>;

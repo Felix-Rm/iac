@@ -34,7 +34,7 @@ macro(IAC_BUILD target_name compile_defs)
 endmacro()
 
 IAC_BUILD(iac "${iac_common_compile_defs}")
-IAC_BUILD(iac_lwstd "${iac_common_compile_defs} -DIAC_DISABLE_STD")
+IAC_BUILD(iac_lwstd "${iac_common_compile_defs} -DIAC_USE_LWSTD")
 
 
 install(TARGETS iac iac_lwstd LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

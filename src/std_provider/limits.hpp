@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef IAC_DISABLE_STD
 #    include "lw_std/limits.hpp"
+#ifdef IAC_USE_LWSTD
 namespace iac {
 template <typename T>
 using numeric_limits = lw_std::numeric_limits<T>;

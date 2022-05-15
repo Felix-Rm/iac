@@ -18,7 +18,7 @@ LocalEndpoint::~LocalEndpoint() {
                 delete entry.second.ptr.by_reader_with_data;
                 break;
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
             case package_handler_type::BY_FN_BUFFER:
                 delete entry.second.ptr.by_fn_buffer;
                 break;
@@ -54,7 +54,7 @@ void LocalEndpoint::add_package_handler(package_type_t for_type, package_handler
     m_handlers[for_type].ptr.by_buffer_with_data = new package_handler_by_buffer_with_data_t{handler};
 }
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
 void LocalEndpoint::add_package_handler(package_type_t for_type, package_handler_fn_by_buffer_t handler) {
     m_handlers[for_type].type = package_handler_type::BY_FN_BUFFER;
     m_handlers[for_type].ptr.by_fn_buffer = new package_handler_fn_by_buffer_t{handler};
@@ -90,7 +90,7 @@ bool LocalEndpoint::handle_package(const Package& package) const {
             (*entry->second.ptr.by_reader_with_data)(package, BufferReader(package.payload(), package.payload_size()), entry->second.data);
             break;
 
-#ifndef IAC_DISABLE_STD
+#ifndef IAC_USE_LWSTD
         case package_handler_type::BY_FN_BUFFER:
             (*entry->second.ptr.by_fn_buffer)(package);
             break;

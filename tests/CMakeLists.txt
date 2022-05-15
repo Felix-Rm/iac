@@ -27,4 +27,4 @@ macro(IAC_TEST target_name iac_link_name compile_defs)
 endmacro()
 
 IAC_TEST(iac_test_suite iac "")
-IAC_TEST(iac_test_suite_lwstd iac_lwstd "IAC_DISABLE_STD")
+IAC_TEST(iac_test_suite_lwstd iac_lwstd "IAC_USE_LWSTD")

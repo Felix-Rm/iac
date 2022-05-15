@@ -1,7 +1,7 @@
 #pragma once
 
-#ifdef IAC_DISABLE_STD
 #    include "lw_std/unordered_map.hpp"
+#ifdef IAC_USE_LWSTD
 namespace iac {
 template <typename T, typename U>
 using unordered_map = lw_std::unordered_map<T, U>;

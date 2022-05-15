@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef IAC_DISABLE_STD
-#    define IAC_DISABLE_EXCEPTIONS
-#endif
-
 #ifndef IAC_DISABLE_EXCEPTIONS
 #    include <cstdlib>
 #    include <exception>
@@ -33,7 +29,7 @@ namespace iac {
 
 #endif
 
-#ifdef IAC_DISABLE_STD
+#ifdef IAC_DISABLE_EXCEPTIONS
 #    define IAC_HALT() \
         while (true) {}
 #else
