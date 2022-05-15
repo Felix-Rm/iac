@@ -1,8 +1,5 @@
 #include "buffer_rw.hpp"
 
-#include <cstdint>
-#include <cstring>
-
 namespace iac {
 
 const char* BufferReader::str() {

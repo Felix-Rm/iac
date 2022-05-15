@@ -1,17 +1,17 @@
 #pragma once
 
-#ifndef ARDUINO
+#ifndef IAC_DISABLE_VISUALIZATION
 
 #    include <fstream>
 
+#    include "../logging.hpp"
+#    include "../network.hpp"
+#    include "../std_provider/printf.hpp"
+#    include "../std_provider/string.hpp"
+#    include "../std_provider/unordered_map.hpp"
+#    include "../std_provider/vector.hpp"
+#    include "../transport_routes/socket_transport_route.hpp"
 #    include "json_writer.hpp"
-#    include "logging.hpp"
-#    include "network.hpp"
-#    include "std_provider/printf.hpp"
-#    include "std_provider/string.hpp"
-#    include "std_provider/unordered_map.hpp"
-#    include "std_provider/vector.hpp"
-#    include "transport_routes/socket_transport_route.hpp"
 
 #    ifndef VISUALIZATION_SITE_DIRECTORY
 #        define VISUALIZATION_SITE_DIRECTORY "iac/network_visualization/site/"

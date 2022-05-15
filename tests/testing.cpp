@@ -1,8 +1,3 @@
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-
 #include "ftest/test_logging.hpp"
 #include "iac.hpp"
 #include "logging.hpp"

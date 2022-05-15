@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstring>
-#    include "lw_std/string.hpp"
 #ifdef IAC_USE_LWSTD
+#    include <lw_std/string.hpp>
 namespace iac {
 using string = lw_std::string;
 using lw_std::to_string;

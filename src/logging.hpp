@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cstdint>
-
 #include "std_provider/printf.hpp"
+#include "std_provider/utility.hpp"
 
 namespace iac {
 
