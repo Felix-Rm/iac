@@ -138,8 +138,8 @@ bool LocalNode::handle_connect(Package& package) {
     auto sender_id = reader.num<node_id_t>();
     auto other_tr_id = reader.num<tr_id_t>();
 
-    package.route()->meta().timings.heartbeat_interval_ms = max(reader.num<uint16_t>(), package.route()->meta().timings.heartbeat_interval_ms);
-    package.route()->meta().timings.assume_dead_after_ms = max(reader.num<uint16_t>(), package.route()->meta().timings.assume_dead_after_ms);
+    package.route()->meta().timings.heartbeat_interval_ms = max_of(reader.num<uint16_t>(), package.route()->meta().timings.heartbeat_interval_ms);
+    package.route()->meta().timings.assume_dead_after_ms = max_of(reader.num<uint16_t>(), package.route()->meta().timings.assume_dead_after_ms);
 
     if (!m_network.node_registered(sender_id)) {
         m_network.add_node(ManagedNetworkEntry<Node>::create_and_adopt(new Node(sender_id)));

@@ -13,7 +13,7 @@ class JSONArray;
 
 class JSONValue {
    public:
-    typedef union {
+    typedef union value_union {
         JSONObject* as_object = nullptr;
         JSONArray* as_array;
         string* as_string;
@@ -61,7 +61,9 @@ class JSONValue {
         return *this;
     }
 
-    string stringify();
+    bool operator==(const JSONValue& other) const;
+
+    string stringify() const;
 
    private:
     void copy_from(const JSONValue& other);

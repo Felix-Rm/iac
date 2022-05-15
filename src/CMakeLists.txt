@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 enable_testing()
 
+set (CMAKE_CXX_STANDARD 17)
 
 set(viz_site_dir "${CMAKE_INSTALL_PREFIX}/include/iac/network_visualization/site/")
 message("Set VISUALIZATION_SITE_DIRECTORY to: ${viz_site_dir}")

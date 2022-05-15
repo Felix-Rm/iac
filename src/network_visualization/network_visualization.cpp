@@ -159,7 +159,7 @@ void Visualization::answer_request(const Visualization::path& path) {
             send_header("404 NOT FOUND", 0, "");
 
         } else {
-            std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+            vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
             send_header("200 OK", buffer.size(), get_mime_type(full_path).c_str());
             m_server.write(buffer.data(), buffer.size());

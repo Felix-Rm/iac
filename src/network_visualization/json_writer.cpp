@@ -93,7 +93,29 @@ void JSONValue::move_from(JSONValue& other) {
     other.m_value_type = NULL_;
 };
 
-string JSONValue::stringify() {
+bool JSONValue::operator==(const JSONValue& other) const {
+    if (m_value_type != other.m_value_type)
+        return false;
+
+    switch (m_value_type) {
+        case value_types::STRING:
+            return m_value.as_string == other.m_value.as_string;
+        case value_types::INT:
+            return m_value.as_int == other.m_value.as_int;
+        case value_types::DOUBLE:
+            return m_value.as_double == other.m_value.as_double;
+        case value_types::OBJECT:
+            return m_value.as_object == other.m_value.as_object;
+        case value_types::ARRAY:
+            return m_value.as_array == other.m_value.as_array;
+        case value_types::NULL_:
+            return "null";
+        default:
+            IAC_ASSERT_NOT_REACHED();
+    }
+}
+
+string JSONValue::stringify() const {
     switch (m_value_type) {
         case value_types::STRING:
             return '"' + *(m_value.as_string) + '"';

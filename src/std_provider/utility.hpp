@@ -1,19 +1,18 @@
 #pragma once
 
-#include <cstdlib>
+#include <cstdint>
 
-#include "std_provider/string.hpp"
-
-#ifdef IAC_DISABLE_STD
-#    include "lw_std/utility.hpp"
+#ifdef IAC_USE_LWSTD
+#    include <lw_std/algorithm.hpp>
+#    include <lw_std/utility.hpp>
 
 namespace iac {
 
 template <typename T, typename U>
 using pair = lw_std::pair<T, U>;
 
-using lw_std::max;
-using lw_std::min;
+using lw_std::max_of;
+using lw_std::min_of;
 using lw_std::move;
 
 }  // namespace iac
@@ -25,12 +24,12 @@ using lw_std::move;
 namespace iac {
 
 template <typename... Args>
-auto min(Args&&... args) -> decltype(std::min(std::forward<Args>(args)...)) {
+auto min_of(Args&&... args) -> decltype(std::min(std::forward<Args>(args)...)) {
     return std::min(std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-auto max(Args&&... args) -> decltype(std::max(std::forward<Args>(args)...)) {
+auto max_of(Args&&... args) -> decltype(std::max(std::forward<Args>(args)...)) {
     return std::max(std::forward<Args>(args)...);
 }
 

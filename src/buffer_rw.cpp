@@ -24,7 +24,7 @@ BufferWriter::~BufferWriter() {
 size_t BufferWriter::buffer_size_on_grow() {
     switch (m_management_type) {
         case buffer_management::MGMT_INTERNAL:
-            return m_allocated_buffer_size + std::max(m_allocated_buffer_size, min_grow_size);
+            return m_allocated_buffer_size + max_of(m_allocated_buffer_size, min_grow_size);
             break;
         case buffer_management::MGMT_INTERNAL_CONSERVATIVE:
             return m_allocated_buffer_size + min_grow_size;
