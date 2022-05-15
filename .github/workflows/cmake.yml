@@ -25,11 +25,11 @@ jobs:
         curl -L -O https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
         unzip -o build-wrapper-linux-x86.zip
         git submodule update --init --remote --recursive
-        build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir cfamily-output cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir cfamily-output cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDISABLE_ASAN=1
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}  --config DISABLE_ASAN=1
 
     - name: Test
       working-directory: ${{github.workspace}}/build

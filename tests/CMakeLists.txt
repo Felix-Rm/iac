@@ -20,8 +20,12 @@ macro(IAC_TEST target_name iac_link_name compile_defs)
 
     target_compile_options(${target_name} PRIVATE -Wall)
 
-    target_compile_options(${target_name} PRIVATE -fsanitize=address)
-    target_link_options(${target_name} PRIVATE -lasan)
+    if(NOT DEFINED DISABLE_ASAN)
+        target_compile_options(${target_name} PRIVATE -std=c++17 -Wall -fsanitize=address)
+        target_link_options(${target_name} PRIVATE -lasan)
+    else()
+        message("WARNING: address sanitizer has been disabled, memory access errors may not be detected")
+    endif()
 
     add_test(${target_name} ${target_name})
 endmacro()
