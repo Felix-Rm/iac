@@ -6,7 +6,7 @@ bool Network::add_route(ManagedNetworkEntry<TransportRoute>&& route) {
     IAC_ASSERT(validate_network());
 
     if (route_registered(route.element().id())) {
-        IAC_HANDLE_EXCPETION(AddDuplicateException, "added already existing route");
+        IAC_HANDLE_EXCEPTION(AddDuplicateException, "added already existing route");
         return false;
     }
 
@@ -38,7 +38,7 @@ bool Network::remove_route(tr_id_t route_id) {
     const auto& res = m_tr_mapping.find(route_id);
 
     if (res == m_tr_mapping.end()) {
-        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant tr");
+        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant tr");
         return false;
     }
 
@@ -46,7 +46,7 @@ bool Network::remove_route(tr_id_t route_id) {
         if (node_id != unset_id) {
             auto node_entry = m_node_mapping.find(node_id);
             if (node_entry == m_node_mapping.end()) {
-                IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "linked node was non existant");
+                IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "linked node was non existant");
                 return false;
             }
 
@@ -74,7 +74,7 @@ bool Network::add_endpoint(ManagedNetworkEntry<Endpoint>&& ep) {
     IAC_ASSERT(validate_network());
 
     if (endpoint_registered(ep.element().id())) {
-        IAC_HANDLE_EXCPETION(AddDuplicateException, "added already existing endpoint");
+        IAC_HANDLE_EXCEPTION(AddDuplicateException, "added already existing endpoint");
         return false;
     }
 
@@ -101,7 +101,7 @@ bool Network::remove_endpoint(ep_id_t ep_id) {
     const auto& res = m_ep_mapping.find(ep_id);
 
     if (res == m_ep_mapping.end()) {
-        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant ep");
+        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant ep");
         return false;
     }
 
@@ -109,7 +109,7 @@ bool Network::remove_endpoint(ep_id_t ep_id) {
     if (node_id != unset_id) {
         auto node_entry = m_node_mapping.find(node_id);
         if (node_entry == m_node_mapping.end()) {
-            IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "linked node was non existant");
+            IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "linked node was non existant");
             return false;
         }
 
@@ -128,7 +128,7 @@ bool Network::add_node(ManagedNetworkEntry<Node>&& node) {
     IAC_ASSERT(validate_network());
 
     if (m_node_mapping.find(node.element().id()) != m_node_mapping.end()) {
-        IAC_HANDLE_EXCPETION(AddDuplicateException, "added already existing node");
+        IAC_HANDLE_EXCEPTION(AddDuplicateException, "added already existing node");
         return false;
     }
 
@@ -146,14 +146,14 @@ bool Network::remove_node(node_id_t node_id) {
     const auto& res = m_node_mapping.find(node_id);
 
     if (res == m_node_mapping.end()) {
-        IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant node");
+        IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant node");
         return false;
     }
 
     for (auto it = res->second->endpoints().begin(); it != res->second->endpoints().end();) {
         auto ep_id = *it++;
         if (!remove_endpoint(ep_id)) {
-            IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant, but linked ep");
+            IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant, but linked ep");
             return false;
         }
     }
@@ -162,7 +162,7 @@ bool Network::remove_node(node_id_t node_id) {
         auto tr_id = *it++;
 
         if (!route_registered(tr_id)) {
-            IAC_HANDLE_EXCPETION(RemoveOfInvalidException, "removing non existant, but linked tr");
+            IAC_HANDLE_EXCEPTION(RemoveOfInvalidException, "removing non existant, but linked tr");
             return false;
         }
 

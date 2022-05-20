@@ -39,7 +39,7 @@ class BufferReader {
     template <typename T>
     T num() {
         if (!can_read(sizeof(T))) {
-            IAC_HANDLE_EXCPETION(BufferReaderOutOfBounds, "reader out of bounds reading num");
+            IAC_HANDLE_EXCEPTION(BufferReaderOutOfBounds, "reader out of bounds reading num");
             return 0;
         }
         T result;
@@ -50,7 +50,7 @@ class BufferReader {
 
     bool boolean() {
         if (!can_read(sizeof(uint8_t))) {
-            IAC_HANDLE_EXCPETION(BufferReaderOutOfBounds, "reader out of bounds reading boolean");
+            IAC_HANDLE_EXCEPTION(BufferReaderOutOfBounds, "reader out of bounds reading boolean");
             return false;
         }
         return num<uint8_t>();

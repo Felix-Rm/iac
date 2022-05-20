@@ -48,10 +48,10 @@ namespace iac {
         IAC_HALT();                                                                                                                     \
     }
 
-#define IAC_HANDLE_EXCPETION(type, message) \
+#define IAC_HANDLE_EXCEPTION(type, message) \
     HandleExceptionImpl<type>(__FILE__, __LINE__, __FUNCTION__, message)
 
-#define IAC_HANDLE_FATAL_EXCPETION(type, message) \
+#define IAC_HANDLE_FATAL_EXCEPTION(type, message) \
     HandleFatalExceptionImpl<type>(__FILE__, __LINE__, __FUNCTION__, message)
 
 template <typename E>

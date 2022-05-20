@@ -5,7 +5,7 @@ namespace iac {
 const char* BufferReader::str() {
     uint8_t* end_of_string = (uint8_t*)memchr(m_cursor, '\0', m_buffer_len - (m_cursor - m_buffer));
     if (end_of_string == nullptr) {
-        IAC_HANDLE_EXCPETION(BufferReaderOutOfBounds, "reader out of bounds reading str");
+        IAC_HANDLE_EXCEPTION(BufferReaderOutOfBounds, "reader out of bounds reading str");
         return nullptr;
     }
 
@@ -30,7 +30,7 @@ size_t BufferWriter::buffer_size_on_grow() {
             return m_allocated_buffer_size + min_grow_size;
             break;
         default:
-            IAC_HANDLE_FATAL_EXCPETION(BufferWriterGrowException, "cant grow buffer with non 'internal' management type");
+            IAC_HANDLE_FATAL_EXCEPTION(BufferWriterGrowException, "cant grow buffer with non 'internal' management type");
             break;
     }
     return 0;
@@ -64,7 +64,7 @@ void BufferWriter::ensure_space(size_t min_free_space) {
         return;
     }
     if (!grow_buffer_to(m_allocated_buffer_size + (min_free_space - free_space))) {
-        IAC_HANDLE_FATAL_EXCPETION(BufferWriterGrowException, "failed to grow buffer to target size [bad_alloc]");
+        IAC_HANDLE_FATAL_EXCEPTION(BufferWriterGrowException, "failed to grow buffer to target size [bad_alloc]");
     }
 }
 

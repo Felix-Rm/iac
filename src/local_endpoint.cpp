@@ -99,7 +99,7 @@ bool LocalEndpoint::handle_package(const Package& package) const {
             break;
 #endif
         default:
-            IAC_HANDLE_FATAL_EXCPETION(EndpointException, "package handler had invalid type");
+            IAC_HANDLE_FATAL_EXCEPTION(EndpointException, "package handler had invalid type");
             return false;
     }
 

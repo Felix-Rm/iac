@@ -66,7 +66,7 @@ class ManagedNetworkEntry {
 
     T* operator->() {
         if (!m_elt) {
-            IAC_HANDLE_FATAL_EXCPETION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
+            IAC_HANDLE_FATAL_EXCEPTION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
         }
 
         return m_elt;
@@ -74,7 +74,7 @@ class ManagedNetworkEntry {
 
     const T* operator->() const {
         if (!m_elt) {
-            IAC_HANDLE_FATAL_EXCPETION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
+            IAC_HANDLE_FATAL_EXCEPTION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
         }
 
         return m_elt;
@@ -94,7 +94,7 @@ class ManagedNetworkEntry {
 
     void bind(T& element) {
         if (m_elt) {
-            IAC_HANDLE_EXCPETION(BindingToNonEmptyNetworkEntryException, "bind on already populated entry");
+            IAC_HANDLE_EXCEPTION(BindingToNonEmptyNetworkEntryException, "bind on already populated entry");
         }
         m_is_adopted = false;
         m_elt = &element;
@@ -102,7 +102,7 @@ class ManagedNetworkEntry {
 
     void adopt(T& element) {
         if (m_elt) {
-            IAC_HANDLE_EXCPETION(BindingToNonEmptyNetworkEntryException, "adopt on already populated entry");
+            IAC_HANDLE_EXCEPTION(BindingToNonEmptyNetworkEntryException, "adopt on already populated entry");
         }
         m_is_adopted = true;
         m_elt = &element;
@@ -142,7 +142,7 @@ class ManagedNetworkEntry {
 
     T& element() {
         if (!m_elt) {
-            IAC_HANDLE_FATAL_EXCPETION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
+            IAC_HANDLE_FATAL_EXCEPTION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
         }
         return *element_ptr();
     };
@@ -153,7 +153,7 @@ class ManagedNetworkEntry {
 
     const T& element() const {
         if (!m_elt) {
-            IAC_HANDLE_FATAL_EXCPETION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
+            IAC_HANDLE_FATAL_EXCEPTION(EmptyNetworkEntryDereferenceException, "used operator-> on empty network entry");
         }
         return *element_ptr();
     };
@@ -172,7 +172,7 @@ class ManagedNetworkEntry {
 
     void copy_from(const ManagedNetworkEntry& other) {
         if (other.m_elt) {
-            IAC_HANDLE_EXCPETION(CopyingNonEmptyNetworkEntryException, "tried copy on non empty network entry");
+            IAC_HANDLE_EXCEPTION(CopyingNonEmptyNetworkEntryException, "tried copy on non empty network entry");
         }
         delete_element();
     }

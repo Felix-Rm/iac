@@ -24,7 +24,7 @@ uint8_t LocalNode::get_tr_id() {
         }
     }
 
-    IAC_HANDLE_FATAL_EXCPETION(OutOfTrIdException, "no more available ids for transport-routes");
+    IAC_HANDLE_FATAL_EXCEPTION(OutOfTrIdException, "no more available ids for transport-routes");
     return 0;
 }
 
@@ -282,7 +282,7 @@ bool LocalNode::handle_heartbeat(const Package& package) {
 
 bool LocalNode::update() {
     if (m_network.endpoint_mapping().empty()) {
-        IAC_HANDLE_EXCPETION(NoRegisteredEndpointsException, "updating node with no endpoints");
+        IAC_HANDLE_EXCEPTION(NoRegisteredEndpointsException, "updating node with no endpoints");
         return false;
     }
 
@@ -294,7 +294,7 @@ bool LocalNode::update() {
 
         auto* route = (LocalTransportRoute*)(it->second.element_ptr());
 
-        it++;  // iterator might get invalidatend in handle_connect_package, so we have to increment now;
+        it++;  // iterator might get invalidated in handle_connect_package, so we have to increment now;
 
         // iac_printf("route %p; mode %d; last in: %d; last out: %d\n", route.first,
         // route.first->m_state, timestamp() - route.first->m_last_package_in,
@@ -434,7 +434,7 @@ bool LocalNode::send_connect_package(LocalTransportRoute* route, bool relay) {
         if (node_entry.second.element_ptr() == this) continue;
 
         if (node_entry.second->local_routes().empty()) {
-            IAC_HANDLE_FATAL_EXCPETION(NonExistingException, "no local route leading to node, invalid state suspected");
+            IAC_HANDLE_FATAL_EXCEPTION(NonExistingException, "no local route leading to node, invalid state suspected");
             return false;
         }
 
