@@ -1,11 +1,11 @@
 #pragma once
 
 #include "forward.hpp"
+#include "local_transport_route.hpp"
 #include "network_types.hpp"
 #include "std_provider/limits.hpp"
 #include "std_provider/printf.hpp"
 #include "std_provider/string.hpp"
-#include "transport_routes/local_transport_route.hpp"
 
 namespace iac {
 
@@ -92,8 +92,8 @@ class Package {
     void print() const;
 
    protected:
-    bool send_over(LocalTransportRoute*) const;
-    bool read_from(LocalTransportRoute*);
+    bool send_over(LocalTransportRoute* route) const;
+    bool read_from(LocalTransportRoute* route);
 
     void copy_from(const Package& other);
     void move_from(Package& other);

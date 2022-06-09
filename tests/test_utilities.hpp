@@ -9,7 +9,7 @@
     node_name.add_local_endpoint(ep_name);
 
 #define TEST_UTILS_CONNECT_NODES_WITH_LOOPBACK(tr_name, node1_name, node2_name) \
-    iac::LoopbackTransportRoutePackage tr_name;                                 \
+    iac::LoopbackConnectionPackage<iac::LoopbackConnection> tr_name;            \
     tr_name.connect(node1_name, node2_name)
 
 class TestUtilities {

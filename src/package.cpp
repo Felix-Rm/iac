@@ -52,18 +52,18 @@ Package::~Package() {
 bool Package::send_over(LocalTransportRoute* route) const {
     package_size_t package_size = s_info_header_size + m_payload_size;
 
-    route->write(&s_startbyte, sizeof(start_byte_t));
-    route->write(&package_size, sizeof(package_size_t));
+    route->connection().write(&s_startbyte, sizeof(start_byte_t));
+    route->connection().write(&package_size, sizeof(package_size_t));
 
-    route->write(&m_metadata, sizeof(metadata_t));
-    route->write(&m_to, sizeof(ep_id_t));
-    route->write(&m_from, sizeof(ep_id_t));
-    route->write(&m_type, sizeof(package_type_t));
+    route->connection().write(&m_metadata, sizeof(metadata_t));
+    route->connection().write(&m_to, sizeof(ep_id_t));
+    route->connection().write(&m_from, sizeof(ep_id_t));
+    route->connection().write(&m_type, sizeof(package_type_t));
 
     if (m_payload_size > 0)
-        route->write(m_payload, m_payload_size);
+        route->connection().write(m_payload, m_payload_size);
 
-    route->flush();
+    route->connection().flush();
 
     return true;
 }
@@ -76,18 +76,18 @@ bool Package::read_from(LocalTransportRoute* route) {
     route->write(&dummy, 1);
 #endif
 
-    if (route->meta().wait_for_available_size > 0 && route->available() < route->meta().wait_for_available_size)
+    if (route->meta().wait_for_available_size > 0 && route->connection().available() < route->meta().wait_for_available_size)
         return false;
 
-    if (route->available() < s_pre_header_size)
+    if (route->connection().available() < s_pre_header_size)
         return false;
 
     route->meta().wait_for_available_size = 0;
 
     start_byte_t start_byte = 0;
 
-    while (route->available() >= s_pre_header_size) {
-        if (route->read(&start_byte, sizeof(start_byte_t)) != sizeof(start_byte_t)) {
+    while (route->connection().available() >= s_pre_header_size) {
+        if (route->connection().read(&start_byte, sizeof(start_byte_t)) != sizeof(start_byte_t)) {
             IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading start_byte returned less bytes than 'available'");
 
             return false;
@@ -104,38 +104,38 @@ bool Package::read_from(LocalTransportRoute* route) {
     if (start_byte != s_startbyte) return false;
 
     package_size_t package_size = 0;
-    if (route->read(&package_size, sizeof(package_size_t)) != sizeof(package_size_t)) {
+    if (route->connection().read(&package_size, sizeof(package_size_t)) != sizeof(package_size_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading package_len returned less bytes than 'available'");
 
         return false;
     }
 
-    if (route->available() < package_size) {
-        route->put_back(&start_byte, sizeof(start_byte_t));
-        route->put_back(&package_size, sizeof(package_size_t));
+    if (route->connection().available() < package_size) {
+        route->connection().put_back(&start_byte, sizeof(start_byte_t));
+        route->connection().put_back(&package_size, sizeof(package_size_t));
         route->meta().wait_for_available_size = package_size + s_pre_header_size;
         return false;
     }
 
-    if (route->read(&m_metadata, sizeof(metadata_t)) != sizeof(metadata_t)) {
+    if (route->connection().read(&m_metadata, sizeof(metadata_t)) != sizeof(metadata_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading meta returned less bytes than 'available'");
 
         return false;
     }
 
-    if (route->read(&m_to, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
+    if (route->connection().read(&m_to, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading to_addr returned less bytes than 'available'");
 
         return false;
     }
 
-    if (route->read(&m_from, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
+    if (route->connection().read(&m_from, sizeof(ep_id_t)) != sizeof(ep_id_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading from_addr returned less bytes than 'available'");
 
         return false;
     }
 
-    if (route->read(&m_type, sizeof(package_type_t)) != sizeof(package_type_t)) {
+    if (route->connection().read(&m_type, sizeof(package_type_t)) != sizeof(package_type_t)) {
         IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading type returned less bytes than 'available'");
 
         return false;
@@ -146,7 +146,7 @@ bool Package::read_from(LocalTransportRoute* route) {
     m_buffer_type = buffer_management::COPY;  // we need to delete this on deconstruction
 
     if (m_payload_size > 0)
-        if (route->read(m_payload, m_payload_size) != m_payload_size) {
+        if (route->connection().read(m_payload, m_payload_size) != m_payload_size) {
             IAC_HANDLE_FATAL_EXCEPTION(InvalidPackageException, "reading payload returned less bytes than 'available'");
             return false;
         }

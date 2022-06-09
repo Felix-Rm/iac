@@ -8,6 +8,7 @@
 #include "exceptions.hpp"
 #include "forward.hpp"
 #include "local_endpoint.hpp"
+#include "local_transport_route.hpp"
 #include "logging.hpp"
 #include "network.hpp"
 #include "network_types.hpp"
@@ -18,7 +19,6 @@
 #include "std_provider/unordered_set.hpp"
 #include "std_provider/utility.hpp"
 #include "std_provider/vector.hpp"
-#include "transport_routes/local_transport_route.hpp"
 
 #ifndef ARDUINO
 #    include <chrono>
@@ -50,6 +50,11 @@ class LocalNode : public Node {
 
     bool add_local_transport_route(LocalTransportRoute& route);
     bool remove_local_transport_route(LocalTransportRoute& route);
+
+    template <typename ConnectionType>
+    bool add_local_transport_route(LocalTransportRoutePackage<ConnectionType>& package) {
+        return add_local_transport_route(package.route());
+    };
 
     bool add_local_endpoint(LocalEndpoint& ep);
     bool remove_local_endpoint(LocalEndpoint& ep);

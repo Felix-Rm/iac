@@ -14,13 +14,13 @@
 #    include <cstdlib>
 
 #    include "../std_provider/string.hpp"
-#    include "local_transport_route.hpp"
+#    include "connection.hpp"
 
 namespace iac {
 
-class SocketTransportRoute : public LocalTransportRoute {
+class SocketConnection : public Connection {
    public:
-    SocketTransportRoute(const char* ip, int port);
+    SocketConnection(const char* ip, int port);
 
     size_t read(void* buffer, size_t size) override;
     size_t write(const void* buffer, size_t size) override;
@@ -45,9 +45,9 @@ class SocketTransportRoute : public LocalTransportRoute {
     bool m_good = true;
 };
 
-class SocketClientTransportRoute : public SocketTransportRoute {
+class SocketClientConnection : public SocketConnection {
    public:
-    SocketClientTransportRoute(const char* ip, int port);
+    SocketClientConnection(const char* ip, int port);
 
     bool open() override;
     bool close() override;
@@ -60,9 +60,9 @@ class SocketClientTransportRoute : public SocketTransportRoute {
     static constexpr unsigned s_connect_timeout = 100000;
 };
 
-class SocketServerTransportRoute : public SocketTransportRoute {
+class SocketServerConnection : public SocketConnection {
    public:
-    SocketServerTransportRoute(const char* ip, int port);
+    SocketServerConnection(const char* ip, int port);
 
     bool open() override;
     bool close() override;

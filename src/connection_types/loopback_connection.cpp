@@ -1,11 +1,12 @@
 
-#include "loopback_transport_route.hpp"
+#include "loopback_connection.hpp"
 
 namespace iac {
 
-LoopbackTransportRoute::LoopbackTransportRoute(queue_t* write_queue, queue_t* read_queue) : m_write_queue(write_queue), m_read_queue(read_queue) {}
+LoopbackConnection::LoopbackConnection(queue_t* write_queue, queue_t* read_queue)
+    : m_write_queue(write_queue), m_read_queue(read_queue) {}
 
-size_t LoopbackTransportRoute::read(void* buffer, size_t size) {
+size_t LoopbackConnection::read(void* buffer, size_t size) {
     size_t read_size = read_put_back_queue(buffer, size);
 
     for (size_t i = 0; i < size && !m_read_queue->empty(); i++) {
@@ -17,35 +18,35 @@ size_t LoopbackTransportRoute::read(void* buffer, size_t size) {
     return read_size;
 }
 
-size_t LoopbackTransportRoute::write(const void* buffer, size_t size) {
+size_t LoopbackConnection::write(const void* buffer, size_t size) {
     for (size_t i = 0; i < size; i++)
         m_write_queue->push(((uint8_t*)buffer)[i]);
 
     return size;
 }
 
-bool LoopbackTransportRoute::flush() {
+bool LoopbackConnection::flush() {
     return true;
 }
 
-bool LoopbackTransportRoute::clear() {
+bool LoopbackConnection::clear() {
     *m_read_queue = queue_t{};
     return true;
 }
 
-size_t LoopbackTransportRoute::available() {
+size_t LoopbackConnection::available() {
     return m_read_queue->size() + available_put_back_queue();
 }
 
-bool LoopbackTransportRoute::open() {
+bool LoopbackConnection::open() {
     return true;
 }
 
-bool LoopbackTransportRoute::close() {
+bool LoopbackConnection::close() {
     return true;
 }
 
-void LoopbackTransportRoute::printBuffer(int cols) {
+void LoopbackConnection::printBuffer(int cols) {
     auto buffer_cp = *m_write_queue;
     while (!buffer_cp.empty()) {
         for (int i = 0; i < cols && !buffer_cp.empty(); i++) {

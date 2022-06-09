@@ -50,8 +50,7 @@ bool LocalNode::add_local_transport_route(LocalTransportRoute& route) {
 }
 
 bool LocalNode::remove_local_transport_route(LocalTransportRoute& route) {
-    route.close();
-    return m_network.remove_route(route.id()) && route.state() == LocalTransportRoute::route_state::CLOSED;
+    return close_route(&route) && m_network.remove_route(route.id());
 }
 
 bool LocalNode::add_local_endpoint(LocalEndpoint& ep) {
@@ -341,7 +340,7 @@ bool LocalNode::update() {
 }
 
 bool LocalNode::read_from(LocalTransportRoute* route) {
-    for (size_t i = 0; i < s_num_package_reads_from_route_per_update && route->available() > 0; i++) {
+    for (size_t i = 0; i < s_num_package_reads_from_route_per_update && route->connection().available() > 0; i++) {
         Package package;
         if (package.read_from(route)) {
             route->meta().last_package_in = timestamp();

@@ -1,14 +1,17 @@
 
 #ifdef ARDUINO
 
-#    include "socket_transport_route_arduino.hpp"
+#    include "esp8266_socket_connection.hpp"
+
+#    include "../logging.hpp"
 
 namespace iac {
 
-SocketTransportRoute::SocketTransportRoute(int port) : m_port(port) {
+SocketConnection::SocketConnection(int port)
+    : m_port(port) {
 }
 
-size_t SocketTransportRoute::read(void* buffer, size_t size) {
+size_t SocketConnection::read(void* buffer, size_t size) {
     if (!m_client.connected()) return 0;
 
     size_t queue_read_size = read_put_back_queue(buffer, size);
@@ -19,21 +22,21 @@ size_t SocketTransportRoute::read(void* buffer, size_t size) {
     return queue_read_size + socket_read_size;
 }
 
-size_t SocketTransportRoute::write(const void* buffer, size_t size) {
+size_t SocketConnection::write(const void* buffer, size_t size) {
     if (!m_client.connected()) return 0;
     // printf("write: [%d] %lu\n", m_rw_fd, size);
 
     return m_client.write((uint8_t*)buffer, size);
 }
 
-bool SocketTransportRoute::flush() {
+bool SocketConnection::flush() {
     if (!m_client.connected()) return false;
 
     m_client.flush();
     return true;
 }
 
-bool SocketTransportRoute::clear() {
+bool SocketConnection::clear() {
     if (!m_client.connected()) return false;
 
     uint8_t buffer[64];
@@ -46,16 +49,17 @@ bool SocketTransportRoute::clear() {
     return true;
 }
 
-size_t SocketTransportRoute::available() {
+size_t SocketConnection::available() {
     if (!m_client.connected()) return 0;
 
     return m_client.available() + available_put_back_queue();
 }
 
-SocketClientTransportRoute::SocketClientTransportRoute(const char* ip, int port) : SocketTransportRoute(port), m_ip(ip) {
+SocketClientConnection::SocketClientConnection(const char* ip, int port)
+    : SocketConnection(port), m_ip(ip) {
 }
 
-bool SocketClientTransportRoute::open() {
+bool SocketClientConnection::open() {
     if (m_client.connect(m_ip, m_port)) {
         m_client.setNoDelay(true);
         return true;
@@ -63,17 +67,18 @@ bool SocketClientTransportRoute::open() {
     return false;
 }
 
-bool SocketClientTransportRoute::close() {
+bool SocketClientConnection::close() {
     clear_put_back_queue();
     m_client.stop();
     return true;
 }
 
-SocketServerTransportRoute::SocketServerTransportRoute(int port) : SocketTransportRoute(port), m_server(m_port) {
+SocketServerConnection::SocketServerConnection(int port)
+    : SocketConnection(port), m_server(m_port) {
     m_server.begin();
 }
 
-bool SocketServerTransportRoute::open() {
+bool SocketServerConnection::open() {
     WiFiClient new_client;
 
     do {
@@ -90,7 +95,7 @@ bool SocketServerTransportRoute::open() {
     return false;
 }
 
-bool SocketServerTransportRoute::close() {
+bool SocketServerConnection::close() {
     m_client.stop();
     return true;
 }

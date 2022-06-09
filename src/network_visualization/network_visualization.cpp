@@ -36,17 +36,14 @@ void Visualization::remove_network(const string& name) {
 }
 
 void Visualization::update() {
-    if (m_server.state() != LocalTransportRoute::route_state::OPEN) {
-        m_server.state() = m_server.open() ? LocalTransportRoute::route_state::OPEN : LocalTransportRoute::route_state::CLOSED;
-        m_failed_reads = 0;
+    while (!m_server.open()) {
+        iac_printf("error opening connection\n");
     }
 
-    if (m_server.state() == LocalTransportRoute::route_state::OPEN) {
-        path result = parse_request();
+    path result = parse_request();
 
-        if (!result.empty())
-            answer_request(result);
-    }
+    if (!result.empty())
+        answer_request(result);
 }
 
 Visualization::path Visualization::parse_request() {
@@ -153,6 +150,7 @@ void Visualization::answer_request(const Visualization::path& path) {
         m_server.write(json.c_str(), json.length());
 
     } else {
+        iac_printf("serving %s\n", full_path.c_str());
         std::ifstream input(full_path, std::ios::binary);
 
         if (!input) {
@@ -167,8 +165,9 @@ void Visualization::answer_request(const Visualization::path& path) {
     }
 
     m_server.flush();
-    m_server.state() = m_server.close() ? LocalTransportRoute::route_state::CLOSED : LocalTransportRoute::route_state::OPEN;
-    // printf("closed %d\n", m_server.state == TransportRoute::route_state::CLOSED);
+    while (!m_server.close()) {
+        iac_printf("error closing connection\n");
+    }
 }
 
 string Visualization::get_mime_type(const Visualization::path& file_path) {

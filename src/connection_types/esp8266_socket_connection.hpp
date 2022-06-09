@@ -4,14 +4,14 @@
 
 #    include <ESP8266WiFi.h>
 
-#    include "local_transport_route.hpp"
+#    include "connection.hpp"
 
 namespace iac {
 
-class SocketTransportRoute : public LocalTransportRoute {
+class SocketConnection : public Connection {
    public:
-    SocketTransportRoute(int port);
-    virtual ~SocketTransportRoute() = default;
+    SocketConnection(int port);
+    virtual ~SocketConnection() = default;
 
     size_t read(void* buffer, size_t size) override;
     size_t write(const void* buffer, size_t size) override;
@@ -33,10 +33,10 @@ class SocketTransportRoute : public LocalTransportRoute {
     bool m_good = true;
 };
 
-class SocketClientTransportRoute : public SocketTransportRoute {
+class SocketClientConnection : public SocketConnection {
    public:
-    SocketClientTransportRoute(const char* ip, int port);
-    ~SocketClientTransportRoute() = default;
+    SocketClientConnection(const char* ip, int port);
+    ~SocketClientConnection() = default;
 
     bool open() override;
     bool close() override;
@@ -47,10 +47,10 @@ class SocketClientTransportRoute : public SocketTransportRoute {
     const char* m_ip;
 };
 
-class SocketServerTransportRoute : public SocketTransportRoute {
+class SocketServerConnection : public SocketConnection {
    public:
-    SocketServerTransportRoute(int port);
-    ~SocketServerTransportRoute() = default;
+    SocketServerConnection(int port);
+    ~SocketServerConnection() = default;
 
     bool open() override;
     bool close() override;

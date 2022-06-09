@@ -4,13 +4,13 @@
 
 #    include <fstream>
 
+#    include "../connection_types/socket_connection.hpp"
 #    include "../logging.hpp"
 #    include "../network.hpp"
 #    include "../std_provider/printf.hpp"
 #    include "../std_provider/string.hpp"
 #    include "../std_provider/unordered_map.hpp"
 #    include "../std_provider/vector.hpp"
-#    include "../transport_routes/socket_transport_route.hpp"
 #    include "json_writer.hpp"
 
 #    ifndef VISUALIZATION_SITE_DIRECTORY
@@ -40,9 +40,8 @@ class Visualization {
     string get_mime_type(const path& file_path);
 
     unordered_map<string, const Network*> m_networks;
-    SocketServerTransportRoute m_server;
+    SocketServerConnection m_server;
 
-    size_t m_failed_reads = 0;
     const char* m_path;
 
     static constexpr unsigned s_message_buffer_size = 2048;

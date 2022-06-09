@@ -1,10 +1,8 @@
-#include "local_transport_route.hpp"
+#include "connection.hpp"
 
 namespace iac {
 
-LocalTransportRoute::LocalTransportRoute() { set_local(true); };
-
-void LocalTransportRoute::put_back(const void* buffer, size_t size) {
+void Connection::put_back(const void* buffer, size_t size) {
     auto* cursor = (uint8_t*)buffer;
 
     for (size_t i = 0; i < size; i++) {
@@ -12,7 +10,7 @@ void LocalTransportRoute::put_back(const void* buffer, size_t size) {
     }
 }
 
-size_t LocalTransportRoute::read_put_back_queue(void*& buffer, size_t& size) {
+size_t Connection::read_put_back_queue(void*& buffer, size_t& size) {
     auto& cursor = (uint8_t*&)buffer;
     size_t read_size = 0;
 
@@ -26,11 +24,11 @@ size_t LocalTransportRoute::read_put_back_queue(void*& buffer, size_t& size) {
     return read_size;
 }
 
-size_t LocalTransportRoute::available_put_back_queue() {
+size_t Connection::available_put_back_queue() {
     return m_put_back_queue.size();
 }
 
-void LocalTransportRoute::clear_put_back_queue() {
+void Connection::clear_put_back_queue() {
     queue<uint8_t> empty;
     m_put_back_queue = empty;
 }

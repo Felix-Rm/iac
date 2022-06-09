@@ -1,10 +1,12 @@
 #ifndef ARDUINO
 
-#    include "socket_transport_route.hpp"
+#    include "socket_connection.hpp"
+
+#    include "../logging.hpp"
 
 namespace iac {
 
-SocketTransportRoute::SocketTransportRoute(const char* ip, int port)
+SocketConnection::SocketConnection(const char* ip, int port)
     : m_ip(ip), m_port(port) {
     signal(SIGPIPE, SIG_IGN);
 
@@ -12,7 +14,7 @@ SocketTransportRoute::SocketTransportRoute(const char* ip, int port)
         inet_pton(AF_INET, ip, &m_addr);
 }
 
-size_t SocketTransportRoute::read(void* buffer, size_t size) {
+size_t SocketConnection::read(void* buffer, size_t size) {
     if (m_rw_fd == -1) return 0;
 
     size_t queue_read_size = read_put_back_queue(buffer, size);
@@ -23,7 +25,7 @@ size_t SocketTransportRoute::read(void* buffer, size_t size) {
     return queue_read_size + socket_read_size;
 }
 
-size_t SocketTransportRoute::write(const void* buffer, size_t size) {
+size_t SocketConnection::write(const void* buffer, size_t size) {
     if (m_rw_fd == -1) return 0;
 
     // printf("write: [%d] %lu\n", m_rw_fd, size);
@@ -31,13 +33,13 @@ size_t SocketTransportRoute::write(const void* buffer, size_t size) {
     return ::write(m_rw_fd, buffer, size);
 }
 
-bool SocketTransportRoute::flush() {
+bool SocketConnection::flush() {
     if (m_rw_fd == -1) return false;
 
     return fsync(m_rw_fd) == 0;
 }
 
-bool SocketTransportRoute::clear() {
+bool SocketConnection::clear() {
     if (m_rw_fd == -1) return false;
 
     static constexpr size_t clear_buffer_size = 128;
@@ -51,7 +53,7 @@ bool SocketTransportRoute::clear() {
     return true;
 }
 
-size_t SocketTransportRoute::available() {
+size_t SocketConnection::available() {
     if (m_rw_fd == -1) return 0;
 
     unsigned long count = 0;
@@ -62,14 +64,14 @@ size_t SocketTransportRoute::available() {
     return count + available_put_back_queue();
 }
 
-SocketClientTransportRoute::SocketClientTransportRoute(const char* ip, int port)
-    : SocketTransportRoute(ip, port) {
+SocketClientConnection::SocketClientConnection(const char* ip, int port)
+    : SocketConnection(ip, port) {
     m_address.sin_family = AF_INET;
     m_address.sin_addr.s_addr = m_addr;
     m_address.sin_port = htons(m_port);
 }
 
-bool SocketClientTransportRoute::open() {
+bool SocketClientConnection::open() {
     if ((m_rw_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
         return false;
 
@@ -163,15 +165,15 @@ bool SocketClientTransportRoute::open() {
     return true;
 }
 
-bool SocketClientTransportRoute::close() {
+bool SocketClientConnection::close() {
     bool close_result = ::close(m_rw_fd) != 0;
     m_rw_fd = -1;
     clear_put_back_queue();
     return close_result;
 }
 
-SocketServerTransportRoute::SocketServerTransportRoute(const char* ip, int port)
-    : SocketTransportRoute(ip, port) {
+SocketServerConnection::SocketServerConnection(const char* ip, int port)
+    : SocketConnection(ip, port) {
     if ((m_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         iac_log(Logging::loglevels::network, "socket failed\n");
 
@@ -208,13 +210,13 @@ SocketServerTransportRoute::SocketServerTransportRoute(const char* ip, int port)
     }
 }
 
-bool SocketServerTransportRoute::open() {
+bool SocketServerConnection::open() {
     socklen_t addr_len = sizeof(m_client_address);
 
     return (m_rw_fd = accept(m_server_fd, (struct sockaddr*)&m_client_address, &addr_len)) >= 0;
 }
 
-bool SocketServerTransportRoute::close() {
+bool SocketServerConnection::close() {
     bool close_result = ::close(m_rw_fd) == 0;
     m_rw_fd = -1;
     clear_put_back_queue();
