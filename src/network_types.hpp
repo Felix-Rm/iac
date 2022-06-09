@@ -10,6 +10,10 @@
 #include "std_provider/unordered_set.hpp"
 #include "std_provider/utility.hpp"
 
+#ifndef ARDUINO
+#    include <chrono>
+#endif
+
 namespace iac {
 
 typedef uint8_t node_id_t;
@@ -23,8 +27,9 @@ typedef uint8_t start_byte_t;
 
 enum reserved_package_types {
     CONNECT = numeric_limits<package_type_t>::max(),
-    DISCONNECT = numeric_limits<package_type_t>::max() - 1,
-    HEARTBEAT = numeric_limits<package_type_t>::max() - 2,
+    ACK = numeric_limits<package_type_t>::max() - 1,
+    NETWORK_UPDATE = numeric_limits<package_type_t>::max() - 2,
+    HEARTBEAT = numeric_limits<package_type_t>::max() - 3,
 };
 
 enum reserved_endpoint_addresses {
@@ -37,6 +42,35 @@ typedef struct route_timings {
     uint16_t heartbeat_interval_ms = 0;
     uint16_t assume_dead_after_ms = 0;
 } route_timings_t;
+
+struct timestamp {
+    timestamp() = default;
+
+    timestamp(size_t ts)
+        : ts(ts){};
+
+    static timestamp now() {
+#ifdef ARDUINO
+        return millis();
+#else
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+#endif
+    }
+
+    bool is_more_than_n_in_past(const timestamp& now, const size_t n) {
+        return timestamp(ts + n) < now;
+    }
+
+    bool operator<(const timestamp& rhs) {
+        return ts < rhs.ts;
+    }
+
+    size_t operator-(const timestamp& rhs) {
+        return ts - rhs.ts;
+    }
+
+    size_t ts;
+};
 
 IAC_MAKE_EXCEPTION(EmptyNetworkEntryDereferenceException);
 IAC_MAKE_EXCEPTION(CopyingNonEmptyNetworkEntryException);

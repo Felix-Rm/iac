@@ -20,13 +20,18 @@
 #include "std_provider/utility.hpp"
 #include "std_provider/vector.hpp"
 
-#ifndef ARDUINO
-#    include <chrono>
-#endif
-
 namespace iac {
 
 IAC_MAKE_EXCEPTION(OutOfTrIdException);
+
+#define IAC_LOG_PACKAGE_SEND(level, type) \
+    iac_log_from_node(level, "sending " type " package to %d over %d\n", m_network.route(route->id()).node2(), route->id());
+
+#define IAC_LOG_PACKAGE_RECEIVE_WITH_INFO(level, type, info, ...) \
+    iac_log_from_node(level, "received " type " package over %d " info "\n", package.route()->id(), __VA_ARGS__);
+
+#define IAC_LOG_PACKAGE_RECEIVE(level, type) \
+    IAC_LOG_PACKAGE_RECEIVE_WITH_INFO(level, type, "", 0);
 
 class LocalNode : public Node {
    public:
@@ -70,7 +75,7 @@ class LocalNode : public Node {
 
    private:
     static constexpr uint16_t s_min_heartbeat_interval_ms = 100;
-    static constexpr uint16_t s_min_assume_dead_time = s_min_heartbeat_interval_ms * 2;
+    static constexpr uint16_t s_min_assume_dead_time = s_min_heartbeat_interval_ms * 3;
     static constexpr uint8_t s_num_package_reads_from_route_per_update = 5;
 
     route_timings_t m_default_route_timings;
@@ -79,42 +84,31 @@ class LocalNode : public Node {
 
     unordered_set<uint8_t> m_used_tr_ids;
 
-    bool handle_package(Package& package, LocalTransportRoute* route = nullptr);
+    bool send_package(const Package& package);
+    bool send_package(const Package& package, LocalTransportRoute* route);
+    bool handle_package(const Package& package);
 
-    bool handle_connect(Package& package);
-    bool handle_disconnect(const Package& package);
-    bool handle_disconnect(LocalTransportRoute* route);
+    bool handle_connect(const Package& package);
     bool handle_heartbeat(const Package& package);
+    bool handle_ack(const Package& package);
+    bool handle_network_update(const Package& package);
 
     bool read_from(LocalTransportRoute* route);
+
+    bool state_handling(LocalTransportRoute* route);
+
     bool open_route(LocalTransportRoute* route);
     bool close_route(LocalTransportRoute* route);
-    bool send_handshake(LocalTransportRoute* route);
-    bool send_heartbeat(LocalTransportRoute* route);
 
-    bool send_connect_package(LocalTransportRoute* route, bool relay);
+    bool send_connect(LocalTransportRoute* route);
+    bool send_heartbeat(LocalTransportRoute* route);
+    bool send_ack(LocalTransportRoute* route);
+    bool send_network_update(LocalTransportRoute* route);
 
     uint8_t get_tr_id();
     bool pop_tr_id(uint8_t id);
 
     static pair<tr_id_t, uint8_t> best_local_route(const unordered_map<tr_id_t, uint8_t>& local_routes);
-    static LocalTransportRoute::timestamp_t timestamp() {
-#ifdef ARDUINO
-        return millis();
-#else
-        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-#endif
-    }
-
-    template <typename T, typename U>
-    void delete_mapping(T mapping, LocalNode* obj, bool (LocalNode::*remove_func)(U)) {
-        for (auto it = mapping.begin(); it != mapping.end();) {
-            U id = it->first;
-            it++;
-
-            (obj->*remove_func)(id);
-        }
-    };
 };
 
 }  // namespace iac

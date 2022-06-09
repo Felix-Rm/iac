@@ -12,18 +12,18 @@
 int main(int argc, char* argv[]) {
     iac::Logging::set_loglevel(iac::Logging::loglevels::debug);
 
-    TestLogging::start_suite("communication");
-
-    TestLogging::run("disconnect-reconnect", TestDisconnectReconnect::run);
-    TestLogging::run("send-receive", TestSendReceive::run);
-    TestLogging::run("network-building", TestNetworkBuilding::run);
-
 #ifndef IAC_DISABLE_VISUALIZATION
     if (argc >= 2 && strncmp(argv[1], "-h", 2) == 0) {
         TestLogging::start_suite("visualization");
         TestLogging::run("visualization", TestNetworkVisualization::run);
     }
 #endif
+
+    TestLogging::start_suite("communication");
+
+    TestLogging::run("disconnect-reconnect", TestDisconnectReconnect::run);
+    TestLogging::run("send-receive", TestSendReceive::run);
+    TestLogging::run("network-building", TestNetworkBuilding::run);
 
     return TestLogging::results();
 }

@@ -10,20 +10,25 @@ bool Network::add_route(ManagedNetworkEntry<TransportRoute>&& route) {
         return false;
     }
 
-    auto tr_id = route.element().id();
-    auto nodes = route.element().nodes();
-    m_tr_mapping[tr_id] = iac::move(route);
-
-    auto add_if_not_unset = [&](tr_id_t tr_id, node_id_t node_id) {
-        if (node_id != unset_id) {
-            if (!node_registered(node_id))
-                add_node(ManagedNetworkEntry<Node>::create_and_adopt(new Node(node_id)));
-            mutable_node(node_id).add_route(tr_id);
-        }
+    auto add_if_not_unset = [&](node_id_t node_id) {
+        if (node_id != unset_id && !node_registered(node_id))
+            add_node(ManagedNetworkEntry<Node>::create_and_adopt(new Node(node_id)));
     };
 
-    add_if_not_unset(tr_id, nodes.first);
-    add_if_not_unset(tr_id, nodes.second);
+    auto link_if_not_unset = [&](tr_id_t tr_id, node_id_t node_id) {
+        if (node_id != unset_id) mutable_node(node_id).add_route(tr_id);
+    };
+
+    auto tr_id = route.element().id();
+    auto nodes = route.element().nodes();
+
+    add_if_not_unset(nodes.first);
+    add_if_not_unset(nodes.second);
+
+    m_tr_mapping[tr_id] = iac::move(route);
+
+    link_if_not_unset(tr_id, nodes.first);
+    link_if_not_unset(tr_id, nodes.second);
 
     set_modified();
 

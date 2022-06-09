@@ -21,15 +21,18 @@ class TestSendReceive {
 
         TestUtilities::update_til_connected([] {}, node1, node2);
 
+        // NOTE: network_update should arrive on next update
+        TestUtilities::update_all_nodes(node1, node2);
+
         if (!node1.send(ep1, ep2.id(), 0, nullptr, 0)) {
-            return {"failed to send pkg to ep2\n"};
+            return {"failed to send pkg to ep2"};
         }
 
         while (rec_pkg_count < 1)
             TestUtilities::update_all_nodes(node1, node2);
 
         if (!node2.send(ep2, ep1.id(), 0, nullptr, 0)) {
-            return {"failed to send pkg to ep1\n"};
+            return {"failed to send pkg to ep1"};
         }
 
         while (rec_pkg_count < 2)

@@ -105,6 +105,10 @@ class Network {
     bool add_node(ManagedNetworkEntry<Node>&& node);
     bool remove_node(node_id_t node_id);
 
+    bool disconnect_route(tr_id_t route_id) {
+        return true;
+    };
+
     bool validate_network() const;
 
     bool is_modified() const {

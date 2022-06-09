@@ -17,6 +17,8 @@ macro(IAC_BUILD target_name compile_defs)
         "local_endpoint.cpp"
         "local_node.cpp"
         "local_node_api.cpp"
+        "local_node_state_handling.cpp"
+        "local_node_package_handling.cpp"
         "local_transport_route.cpp"
         "logging.cpp"
         "network.cpp"

@@ -7,7 +7,8 @@ constexpr size_t Package::s_info_header_size;
 constexpr size_t Package::s_max_payload_size;
 constexpr start_byte_t Package::s_startbyte;
 
-Package::Package(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, buffer_management_t buffer_type) : m_from(from), m_to(to), m_type(type), m_payload((uint8_t*)buffer), m_buffer_type(buffer_type) {
+Package::Package(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, buffer_management_t buffer_type)
+    : m_from(from), m_to(to), m_type(type), m_payload((uint8_t*)buffer), m_buffer_type(buffer_type) {
     if (buffer_length > s_max_payload_size) {
         IAC_HANDLE_EXCEPTION(InvalidPackageException, "payload to big");
 
@@ -73,7 +74,7 @@ bool Package::read_from(LocalTransportRoute* route) {
 
 #ifdef ARDUINO
     uint8_t dummy = 0;
-    route->write(&dummy, 1);
+    route->connection().write(&dummy, 1);
 #endif
 
     if (route->meta().wait_for_available_size > 0 && route->connection().available() < route->meta().wait_for_available_size)

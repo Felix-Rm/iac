@@ -6,17 +6,17 @@ bool LocalNode::send(Endpoint& from, ep_id_t to, package_type_t type, const uint
     return send(from.id(), to, type, buffer, buffer_length, buffer_management);
 }
 
-bool LocalNode::send(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, Package::buffer_management_t buffer_management) {
-    Package package{from, to, type, buffer, buffer_length, buffer_management};
-    return handle_package(package);
+bool LocalNode::send(Endpoint& from, ep_id_t to, package_type_t type, const BufferWriter& buffer, Package::buffer_management_t buffer_management) {
+    return send(from, to, type, buffer.buffer(), buffer.size(), buffer_management);
 }
 
 bool LocalNode::send(ep_id_t from, ep_id_t to, package_type_t type, const BufferWriter& buffer, Package::buffer_management_t buffer_management) {
     return send(from, to, type, buffer.buffer(), buffer.size(), buffer_management);
 }
 
-bool LocalNode::send(Endpoint& from, ep_id_t to, package_type_t type, const BufferWriter& buffer, Package::buffer_management_t buffer_management) {
-    return send(from, to, type, buffer.buffer(), buffer.size(), buffer_management);
+bool LocalNode::send(ep_id_t from, ep_id_t to, package_type_t type, const uint8_t* buffer, size_t buffer_length, Package::buffer_management_t buffer_management) {
+    Package package{from, to, type, buffer, buffer_length, buffer_management};
+    return send_package(package);
 }
 
 bool LocalNode::endpoint_connected(ep_id_t address) const {
@@ -35,11 +35,11 @@ bool LocalNode::endpoints_connected(const vector<ep_id_t>& addresses) const {
 bool LocalNode::all_routes_connected() const {
     for (const auto& route : m_network.route_mapping()) {
         if (!route.second.element().local()) continue;
-        const auto& ltr = (const LocalTransportRoute&) route.second.element();
+        const auto& ltr = (const LocalTransportRoute&)route.second.element();
         if (ltr.state() != LocalTransportRoute::route_state::CONNECTED) return false;
     }
 
     return true;
 }
 
-}
+}  // namespace iac

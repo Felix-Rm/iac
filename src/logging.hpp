@@ -34,20 +34,23 @@ class Logging {
     }
 
 #ifndef IAC_DISABLE_PRINTING
-#    define iac_log(level, ...) Logging::log(__FILE__, __LINE__, __FUNCTION__, level, __VA_ARGS__);
+#    define iac_log(level, ...) Logging::log(__FILE__, __LINE__, __FUNCTION__, nullptr, 0, level, __VA_ARGS__);
+#    define iac_log_from_node(level, ...) Logging::log(__FILE__, __LINE__, __FUNCTION__, "[node::%d] \t", id(), level, __VA_ARGS__);
 
-    static constexpr void log_head([[maybe_unused]] const char* file, [[maybe_unused]] unsigned line, [[maybe_unused]] const char* function, loglevel_t level) {
+    static constexpr void log_head([[maybe_unused]] const char* file, [[maybe_unused]] unsigned line, [[maybe_unused]] const char* function, loglevel_t level, const char* id_str, int id) {
 #    ifdef IAC_LOG_WITH_LINE_NUMBERS
         iac_printf(s_log_head_fmt_with_line_info, s_level_colors[(int)level], s_level_names[(int)level], file, line, function);
 #    else
         iac_printf(s_log_head_fmt, s_level_colors[(int)level], s_level_names[(int)level]);
 #    endif
+        if (id_str)
+            iac_printf(id_str, id);
     }
 
     template <typename... Args>
-    static constexpr void log(const char* file, unsigned line, const char* function, loglevel_t level, Args... args) {
+    static constexpr void log(const char* file, unsigned line, const char* function, const char* id_str, int id, loglevel_t level, Args... args) {
         if (s_loglevel >= level) {
-            log_head(file, line, function, level);
+            log_head(file, line, function, level, id_str, id);
             iac_printf(args...);
         }
     }
