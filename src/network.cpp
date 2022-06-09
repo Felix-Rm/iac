@@ -279,29 +279,48 @@ bool Network::validate_network() const {
     return true;
 }
 
+template <typename It>
+static void print_extension_if_needed(It current, It end) {
+    if (++current == end) iac_printf("    ");
+    else iac_printf("|   ");
+}
+
 void Network::print_network() const {
-    for (const auto& entry : m_node_mapping) {
-        const auto& node_entry = entry.second;
+    for (auto node_it = m_node_mapping.begin(); node_it != m_node_mapping.end(); ++node_it) {
+        const auto& node_entry = node_it->second;
         const auto& routes = node_entry->m_routes;
         const auto& endpoints = node_entry->m_endpoints;
 
-        iac_printf("  |\n  +-- listing for node 0x%x\n", node_entry.element().id());
+        iac_printf("+-- listing for node 0x%x\n", node_entry.element().id());
 
-        iac_printf("  |  +-- local endpoints @ node:\n");
-        for (const auto& ep_id : endpoints) {
-            const auto& ep_entry = m_ep_mapping.at(ep_id);
-            iac_printf("  |  |  +-- ep id: 0x%x name: '%s'\n", ep_entry.element().id(), ep_entry.element().name().c_str());
+        print_extension_if_needed(node_it, m_node_mapping.end());
+        iac_printf("+-- local endpoints @ node:\n");
+
+        for (auto ep_it = endpoints.begin(); ep_it != endpoints.end(); ++ep_it) {
+            const auto& ep_entry = m_ep_mapping.at(*ep_it);
+            print_extension_if_needed(node_it, m_node_mapping.end());
+            iac_printf("|   ");
+            iac_printf("+-- ep id: 0x%x name: '%s'\n", ep_entry.element().id(), ep_entry.element().name().c_str());
         }
 
-        iac_printf("  |  +-- connections from node:\n");
-        for (const auto& tr_id : routes) {
-            const auto& tr_entry = m_tr_mapping.at(tr_id);
-            iac_printf("  |  |  +-- tr id: 0x%x from: %d type: '%s' info: '%s'\n",
+        print_extension_if_needed(node_it, m_node_mapping.end());
+        iac_printf("|   \n");
+
+        print_extension_if_needed(node_it, m_node_mapping.end());
+        iac_printf("+-- connections from node:\n");
+        for (auto tr_it = routes.begin(); tr_it != routes.end(); ++tr_it) {
+            const auto& tr_entry = m_tr_mapping.at(*tr_it);
+            print_extension_if_needed(node_it, m_node_mapping.end());
+            iac_printf("    ");
+            iac_printf("+-- tr id: 0x%x from: %d type: '%s' info: '%s'\n",
                        tr_entry.element().id(),
-                       entry.first == tr_entry->node1() ? tr_entry->node2() : tr_entry->node1(),
+                       node_it->first == tr_entry->node1() ? tr_entry->node2() : tr_entry->node1(),
                        tr_entry.element().typestring().c_str(),
                        tr_entry.element().infostring().c_str());
         }
+
+        print_extension_if_needed(node_it, m_node_mapping.end());
+        iac_printf("\n");
     }
 }
 
